@@ -1,0 +1,788 @@
+﻿AppType=StandardJava
+Build1=Default,com.luxtronik
+Group=Default Group
+Library1=jcore
+Library10=jmqtt
+Library11=json
+Library2=byteconverter
+Library3=jrandomaccessfile
+Library4=jnetwork
+Library5=jserver
+Library6=jsql
+Library7=jdateutils
+Library8=b4xcollections
+Library9=javaobject
+Module1=cLuxCalculation
+Module2=cLuxCalculations
+Module3=cLuxParameter
+Module4=logger
+NumberOfFiles=0
+NumberOfLibraries=11
+NumberOfModules=4
+Version=8.1
+@EndOfDesignText@
+#Region Project Attributes 
+	#CommandLineArgs:
+	#MergeLibraries: True 
+	#AdditionalJar: mariadb-java-client-2.5.2.jar
+	#IgnoreWarnings: 15
+#End Region
+
+#if RELEASE
+	#CustomBuildAction: 2, c:\windows\system32\cmd.exe,/C echo Cancelled build... && Exit /B 1
+#end if
+
+Sub Process_Globals
+	Public config     As Map
+	Public BaseDir    As String
+	
+	Private pool As ConnectionPool	
+	Private StreamBuffer As B4XBytesBuilder
+	
+	Private lux_Host     As String
+	Private lux_Password As String 'ignore
+	Private lux_Port     As Int
+	Private lux_Timeout  As Int
+	
+	Private	lux_ParamSet As Boolean
+	
+	Private TimerConnect   As Timer
+	Private TimerReload    As Timer
+	Private TimerParamSet  As Timer
+	Private TimerMQTT      As Timer
+
+
+	Private IntervalConnect  As Int
+	Private IntervalReload   As Int
+	Private IntervalParamSet As Int
+	Private IntervalMQTT     As Int
+	
+	
+	Private mLuxCalcsMap  As Map
+	Private mLuxCalcs     As Map
+	Private mLuxParamsMap As Map
+	Private mLuxParams    As Map
+	Private mValueFmt     As Map
+	Private 	mValueMap     As Map
+	
+	Private mqtt          As MqttClient
+	Private mqtt_options  As MqttConnectOptions
+	Private mqtt_server   As String
+	Private mqtt_user     As String
+	Private mqtt_password As String
+	Private mqtt_clientid As String
+	Private mqtt_topic    As String
+	
+	
+	Public const VERSION As Float = 2.4
+	
+	Type LuxNumFmt(FormatString As String, Divisor As Double)
+'	Type LuxParam(LuxID As Int, Description As String, FormatID As Int, MapID As Int, History As Boolean, History_Interval As Int, History_LastSave As Long)
+End Sub
+
+Sub AppStart (Args() As String)
+	BaseDir = File.DirApp	
+	
+	Log($"Luxtronik datalogger v$1.2{VERSION}"$)
+	Log($"workin dir ${BaseDir}"$)
+	
+	config.Initialize
+	#If Debug
+	config = File.ReadMap2(BaseDir & "/../", "config.properties", config)
+	#Else
+	If File.Exists(BaseDir, "config.properties") Then
+		config = File.ReadMap2(BaseDir, "config.properties", config)
+	Else
+		LogError("config.properties is missing!")
+		ExitApplication		
+	End If
+	#End If
+	
+	' Einstellungen für den Logger
+	logger.LogDir      = ConfigGetString("LogDir", File.DirApp)
+	logger.LogFile     = ConfigGetString("LogFile", "luxtronik.log")
+	logger.LogLevel    = ConfigGetString("LogLevel", "ERROR")
+	logger.LogFilesMax = ConfigGetInt("LogFiles", 5)
+	logger.LogSizeMax  = ConfigGetInt("LogSize", 5 * 1024 * 1024)
+	If ConfigGetString("LogRotate", "Y")="Y"  Then logger.LogRotate   = True Else logger.LogRotate  = False
+	If ConfigGetString("LogConsole", "Y")="Y" Then logger.LogConsole  = True Else logger.LogConsole  = False
+		
+	' Verbindungsdaten für die Datenbank
+	Try
+		pool.Initialize(config.Get("DriverClass"), _
+	    	            		config.Get("JdbcUrl"), _
+						config.Get("Username"), _
+						config.Get("Password"))
+	Catch
+		logger.wError("Unable to set connection!" & LastException.Message)
+		ExitApplication
+	End Try
+	
+	' Teste Datenbank
+	Try
+		Dim SQL1 As SQL
+		SQL1 = pool.GetConnection
+	Catch
+		logger.wError("Unable to conntect to database server!")
+		logger.wError(LastException.Message)
+		ExitApplication
+	End Try
+	' ToDo: Prüfen und ggf. Datenbank anlegen
+	' TODO: Auto. Datenbank update bei Änderungen
+	SQL1.Close
+	
+	' Verbindungsdaten
+	lux_Host     = ConfigGetString("luxHost", "")
+	lux_Password = ConfigGetString("luxPassword", "999999")
+	lux_Port     = ConfigGetInt("luxPort", 8888)
+	lux_Timeout  = ConfigGetInt("luxTimeout", 3)
+	
+	If lux_Port    = 0 Then lux_Port    = 8888
+	If lux_Timeout = 0 Then lux_Timeout = 3
+	If lux_Host = "" Then
+		logger.wError("No Luxtronik Host set! Option: luxHost")
+		ExitApplication
+	End If
+
+	' MQTT
+	If ConfigGetString("mqttEnable", "N")="Y" Then
+		mqtt_server   = ConfigGetString("mqttServer", "")
+		mqtt_user     = ConfigGetString("mqttUser", "")
+		mqtt_password = ConfigGetString("mqttPassword", "")
+		mqtt_clientid = ConfigGetString("mqttClientID", "heatpump")
+		mqtt_topic    = ConfigGetString("mqttTopic", "heatpump")
+		mqtt_options.Initialize(mqtt_user, mqtt_password)		
+		mqtt.Initialize("MQTT", mqtt_server, mqtt_clientid)
+		
+		IntervalMQTT = ConfigGetInt("mqttTelePeriod", 60)
+		If IntervalMQTT<=10 Then IntervalMQTT = 10
+		TimerMQTT.Initialize("MQTT", IntervalMQTT * 1000)
+		TimerMQTT.Enabled = True
+	End If
+	' Allgemein
+	IntervalConnect   =ConfigGetInt("SyncInterval", 30)
+	IntervalReload    =ConfigGetInt("ParamsInterval", 300)
+	If IntervalConnect=0  Then IntervalConnect = 30
+	If IntervalReload =0  Then IntervalReload  = 300
+	
+	If ConfigGetString("luxParamSet", "N")="Y" Then 	lux_ParamSet = True
+	
+	' Bei zu kurzen Werte diese erhöhen
+	If IntervalConnect < 5 Then IntervalConnect = 5
+	If IntervalReload  < 5 Then IntervalReload  = 5
+
+	mLuxCalcsMap.Initialize
+	mLuxCalcs.Initialize
+	mLuxParamsMap.Initialize
+	mLuxParams.Initialize
+	
+	mValueMap.Initialize
+	mValueFmt.Initialize
+	
+	StreamBuffer.Initialize
+	
+	TimerConnect.Initialize("TimerConnect", IntervalConnect*1000)
+	TimerConnect.Enabled = False
+	
+	TimerReload.Initialize("TimerReload", IntervalReload*1000)
+	TimerConnect.Enabled = True
+	
+	IntervalParamSet = 10
+	TimerParamSet.Initialize("TimerParamSet", IntervalParamSet*1000)
+	TimerParamSet.Enabled = True
+
+	CallSubDelayed(Me, "TimerReload_Tick")
+	CallSubDelayed(Me, "TimerConnect_Tick")
+	CallSubDelayed(Me, "TimerParamSet_Tick")
+	StartMessageLoop
+End Sub
+
+'Return true to allow the default exceptions handler to handle the uncaught exception.
+Sub Application_Error (Error As Exception, StackTrace As String) As Boolean
+	logger.wError(LastException.Message)
+	logger.wError(StackTrace)
+	Return False
+End Sub
+
+Sub TimerConnect_Tick
+	logger.wInfo($"Connect to Luxtronic ${lux_Host}:${lux_Port}"$)
+	TimerConnect.Enabled = False
+	
+	Dim Socket  As Socket
+	Dim aStream As AsyncStreams
+	
+	Socket.Initialize("Socket")
+	Socket.Connect(lux_Host, lux_Port, lux_Timeout*1000)
+	
+	Wait For Socket_Connected (Successful As Boolean)
+	If Successful Then
+		StreamBuffer.Clear
+		aStream.Initialize(Socket.InputStream, Socket.OutputStream, "Stream")
+		LuxRequestCalcs(aStream)
+		Sleep(1000)
+		LuxReadCalcs(StreamBuffer.ToArray)
+		StreamBuffer.Clear
+		
+		LuxRequestParams(aStream)
+		Sleep(1000)
+		LuxReadParams(StreamBuffer.ToArray)
+		StreamBuffer.Clear
+		
+		aStream.Close
+		Socket.Close
+	Else
+		logger.wError("Unable to connect! timeout!")
+		logger.wError(LastException.Message)
+	End If
+	TimerConnect.Enabled = True
+End Sub
+
+#Region mqtt
+Sub MQTT_Tick
+	Dim topic     As String
+	Dim payload() As Byte
+	Dim JsonG     As JSONGenerator
+	Dim m1        As Map
+	Dim calc      As cLuxCalculation
+	Dim param     As cLuxParameter
+
+	If mqtt.Connected=False Then
+		mqtt.Connect2(mqtt_options)
+		Wait For MQTT_Connected (Success As Boolean)
+		If Success=False Then
+			logger.wError("MQTT Unable to connect to server!")
+			logger.wError(LastException.Message)
+			Return
+		End If
+	End If
+	logger.wInfo("MQTT publish")
+	m1.Initialize
+	For Each k As String In mLuxCalcs.Keys
+		calc = mLuxCalcs.Get(k)
+		If calc.MQTT Then
+			m1.Put(k, calc.Value)
+		End If
+	Next
+	JsonG.Initialize(m1)
+	topic = $"tele/${mqtt_topic}/calculations"$
+	payload = JsonG.ToString.GetBytes("UTF8")
+	mqtt.Publish(topic, payload)
+	
+	m1.Clear
+	For Each k As String In mLuxParams.Keys
+		param = mLuxParams.Get(k)
+		If param.MQTT Then
+			m1.Put(k, param.Value)
+		End If
+	Next
+	JsonG.Initialize(m1)
+	topic = $"tele/${mqtt_topic}/parameters"$
+	payload = JsonG.ToString.GetBytes("UTF8")
+	mqtt.Publish(topic, payload)
+End Sub
+
+Sub MQTT_Disconnected
+	
+End Sub
+
+Sub MQTT_MessageArrived (Topic As String, Payload() As Byte)
+	Log($"MQTT: ${Topic} Payload ${Payload.Length}"$)
+End Sub
+#End Region
+
+#Region Global Parameters
+Sub TimerReload_Tick
+	logger.wInfo("Reloading global parameters...")
+	Dim SQL1 As SQL
+	Dim rs1  As ResultSet
+	Dim mValueFmtNew, mValuesMapNew, mCalcsNew, mCalcsMapNew, mParamsNew, mParamsMapNew As Map
+	Dim now As Long = DateTime.Now
+	Try
+		Dim SQL1 As SQL
+		SQL1 = pool.GetConnection
+	Catch
+		logger.wError("Unable to conntect to database server!")
+		logger.wError(LastException.Message)
+		Return
+	End Try
+	
+	mValueFmtNew.Initialize
+	mValuesMapNew.Initialize
+	mCalcsNew.Initialize
+	mCalcsMapNew.Initialize
+
+	mParamsNew.Initialize
+	mParamsMapNew.Initialize
+	
+	Dim id, value As Int
+	Dim text As String
+	Dim key As String
+
+	rs1 = SQL1.ExecQuery("SELECT * FROM valueformat")
+	Do While rs1.NextRow
+		Dim NumFmt1 As LuxNumFmt
+		NumFmt1.Initialize
+		NumFmt1.formatstring = rs1.GetString("formatstring")
+		NumFmt1.divisor      = rs1.GetDouble("divisor")
+		mValueFmtNew.Put(rs1.GetInt("id"), NumFmt1)
+	Loop
+	rs1.Close
+	mValueFmt = mValueFmtNew
+	
+	Dim CalcOld As cLuxCalculation
+	rs1 = SQL1.ExecQuery("SELECT * FROM calcs")
+	Do While rs1.NextRow
+		Dim Calc As cLuxCalculation
+		If mLuxCalcs.ContainsKey(rs1.GetString("metric")) Then
+			CalcOld = mLuxCalcs.Get(rs1.GetString("metric"))
+		Else
+			CalcOld.Initialize
+		End If
+		Calc.Initialize
+		Calc.LuxID       = rs1.GetInt("luxid")
+		Calc.FormatID    = rs1.GetInt("formatid")
+		Calc.MapID       = rs1.GetInt("mapid")
+		Calc.Description = rs1.GetString("description")
+		Calc.History_Interval = rs1.GetInt("history_interval")
+		If CalcOld.History_LastSave>0 Then
+			Calc.History_LastSave = CalcOld.History_LastSave
+		Else
+			Calc.History_LastSave = now
+		End If	
+		
+		If rs1.GetString("history")="Y" Then Calc.History = True Else Calc.History = False
+		mCalcsNew.Put(rs1.GetString("metric"), Calc)
+		If Calc.LuxID>0 Then mCalcsMapNew.Put(Calc.LuxID, rs1.GetString("metric"))
+	Loop
+	rs1.Close
+	mLuxCalcs    = mCalcsNew
+	mLuxCalcsMap = mCalcsMapNew
+
+	rs1 = SQL1.ExecQuery("SELECT id, value, text FROM valuemap")
+	Do While rs1.NextRow
+		id    = rs1.GetInt("id")
+		value = rs1.GetInt("value")
+		text  = rs1.GetString("text")
+		key = $"${id}:${value}"$
+		mValuesMapNew.Put(key, text)
+	Loop
+	rs1.Close
+	mValueMap = mValuesMapNew	
+	
+	rs1 = SQL1.ExecQuery("SELECT * FROM params")
+	Do While rs1.NextRow
+		Dim Param As cLuxParameter
+		Param.Initialize
+		Param.Metric = rs1.GetString("metric")
+		Param.LuxID  = rs1.GetInt("luxid")
+		Param.Description = ""
+		mParamsNew.Put(rs1.GetString("metric"), Param)
+		If Param.LuxID>0 Then mParamsMapNew.Put(Param.LuxID, rs1.GetString("metric"))
+	Loop
+	rs1.Close
+	mLuxParams    = mParamsNew
+	mLuxParamsMap = mParamsMapNew
+	
+	SQL1.Close
+End Sub
+#End Region
+
+#Region ParamSet
+Sub TimerParamSet_Tick
+	Dim SQL1 As SQL
+	Dim rs1  As ResultSet
+	Dim s1   As Socket
+	Dim b() As Byte
+	Dim bc As ByteConverter
+	Dim astream As AsyncStreams
+	If lux_ParamSet=False Then Return
+	
+'	logger.wInfo("Luxtronik SetParam")
+	Try
+		SQL1 = pool.GetConnection
+	Catch
+		logger.wError("Unable to conntect to database!")
+		logger.wError(LastException.Message)
+		Return
+	End Try
+	s1.Initialize("SocketParamSet")
+	s1.Connect(lux_Host, lux_Port, lux_Port)
+	Wait For SocketParamSet_Connected (Successful As Boolean)
+	If Successful Then 
+		astream.Initialize(s1.InputStream, s1.OutputStream, "StreamParamSet")
+		rs1 = SQL1.ExecQuery("SELECT * FROM paramset AS a INNER JOIN params b ON b.metric=a.metric WHERE changeat<=now()")
+		Do While rs1.NextRow
+			logger.wInfo($"Luxtronik SetParam ${rs1.GetInt("a.id")}  LuxID: ${rs1.GetString("a.metric")}:${rs1.GetInt("b.luxid")}=${rs1.GetInt("a.value")}"$)
+			If rs1.GetInt("b.luxid")>0 Then
+				bc.LittleEndian = False
+				b = bc.IntsToBytes(Array As Int(3002, rs1.GetInt("b.luxid"), rs1.GetInt("a.value")))
+				astream.Write(b)
+			End If
+			SQL1.ExecNonQuery2("DELETE FROM paramset WHERE id=?", Array As String(rs1.GetInt("a.id")))
+		Loop
+		astream.Close
+		rs1.Close
+	End If
+	s1.Close
+	SQL1.Close
+End Sub
+
+Sub StreamParamSet_NewData (Buffer() As Byte)
+End Sub
+
+Sub StreamParamSet_Error
+End Sub
+
+Sub StreamParamSet_Terminated
+End Sub
+#End Region
+
+#Region Stream
+Sub Stream_NewData (Buffer() As Byte)
+'	logger.wInfo("Luxtronik NewData")
+	StreamBuffer.Append(Buffer)
+End Sub
+
+Sub Stream_Error
+	logger.wError("Stream Error!")
+	logger.wError(LastException.Message)
+End Sub
+
+Sub Stream_Terminated
+End Sub
+#End Region
+
+#Region Params
+Sub LuxRequestParams(astream As AsyncStreams)
+	Dim b() As Byte
+	Dim bc As ByteConverter
+	
+	StreamBuffer.Clear
+	
+	logger.wInfo("Luxtronik RequestParams (3003)")
+	bc.LittleEndian = False
+	b = bc.IntsToBytes(Array As Int(3003, 0))
+	astream.Write(b)
+End Sub
+
+Sub LuxReadParams(Buffer() As Byte)
+	Dim Raf    As RandomAccessFile
+	Dim SQL1   As SQL
+	
+	logger.wInfo("Luxtronik ReadParams")
+	Raf.Initialize3(Buffer,False)
+	Dim OperationResult As Int=Raf.ReadInt(Raf.CurrentPosition)' Reads the first 4 bytes
+	If OperationResult<>3003 Then 
+		logger.wWARN("Wrong data package received " & OperationResult)
+		Return
+	End If
+	Dim TextLen As Int=Raf.ReadInt(Raf.CurrentPosition)
+
+	If TextLen=0 Or TextLen>2000 Then
+		logger.wError("Array size to big or zero?")
+		Return
+	End If
+	Dim i(TextLen) As Int
+	Try
+		For idx = 0 To TextLen-1
+			i(idx) = Raf.ReadInt(Raf.CurrentPosition)
+		Next
+	Catch
+		logger.wError(LastException.Message)
+		Return
+	End Try
+	
+	Try
+		SQL1 = pool.GetConnection
+		SendParamsDB(SQL1, i)
+		SQL1.Close
+	Catch
+		logger.wError("Unable to conntect to database!")
+		logger.wError(LastException.Message)
+	End Try
+End Sub
+
+Sub SendParamsDB(SQL1 As SQL, data() As Int)	
+	Dim metric As String
+'	Dim now    As Long = DateTime.Now
+	Dim value  As Double
+	Dim text   As String
+
+	SQL1.BeginTransaction
+	SQL1.ExecNonQuery("DELETE FROM paramvals_unkown")
+	For idx=0 To data.Length-1
+		If mLuxParamsMap.ContainsKey(idx)=False Then
+			SQL1.ExecNonQuery2("REPLACE INTO paramvals_unkown (luxid, value) VALUES (?, ?)" _
+							 , Array As String (idx, data(idx)))
+			Continue
+		End If
+		Dim Param As cLuxParameter
+		Param.Initialize
+		metric = mLuxParamsMap.Get(idx)
+		If mLuxParams.ContainsKey(metric) Then
+			Param = mLuxParams.Get(metric)
+		End If
+		value = data(idx)
+		text  = ""
+		SQL1.ExecNonQuery2("REPLACE INTO paramvals (metric, value, text) VALUES (?, ?, ?)" _
+		                  ,Array As String (metric, value, text))
+		Param.Value = value
+		mLuxParams.Put(metric, Param)
+	Next
+	SQL1.TransactionSuccessful
+End Sub
+#End Region
+
+#Region Calcs
+Sub LuxRequestCalcs(aStream As AsyncStreams)
+	Dim b() As Byte
+	Dim bc As ByteConverter
+		
+	logger.wInfo("Luxtronik GetCalcs (3004)")
+	bc.LittleEndian = False
+	b = bc.IntsToBytes(Array As Int(3004, 0))
+	aStream.Write(b)
+End Sub
+
+Sub LuxReadCalcs(Buffer() As Byte)
+	Dim Raf    As RandomAccessFile
+	Dim SQL1   As SQL
+	
+	logger.wInfo("Luxtronik ReadCalcs")
+	Raf.Initialize3(Buffer,False)
+	Dim OperationResult As Int=Raf.ReadInt(Raf.CurrentPosition)' Reads the first 4 bytes
+	If OperationResult<>3004 Then 
+		logger.wWARN("Wrong data package received " & OperationResult)
+		Return
+	End If
+	Raf.ReadInt(Raf.CurrentPosition)
+	Try
+		Dim TextLen As Int=Raf.ReadInt(Raf.CurrentPosition) 'read the second 4 bytes
+	Catch
+		logger.wError("Can't decode buffer!")
+		logger.wError(LastException.Message)
+		Return
+	End Try
+	
+	If TextLen=0 Or TextLen>2000 Then
+		logger.wError("Array size to big or zero?")
+		Return
+	End If
+	
+	Dim i(TextLen) As Int
+	For idx = 0 To TextLen-1
+		i(idx) = Raf.ReadInt(Raf.CurrentPosition)
+	Next
+
+	Try
+		SQL1 = pool.GetConnection
+		SendCalcsDB(SQL1, i)
+		SQL1.Close
+	Catch
+		logger.wError("Unable to conntect to database!")
+		logger.wError(LastException.Message)
+	End Try
+End Sub
+
+Sub SendCalcsDB(SQL1 As SQL, data() As Int)	
+	Dim metric As String
+	Dim value As Double
+	Dim text As String
+	Dim ticks As Float
+	Dim now    As Long = DateTime.Now
+	Dim p As Period
+	
+	p.Initialize
+
+
+	Dim NumFormat1 As LuxNumFmt
+	SQL1.BeginTransaction
+	SQL1.ExecNonQuery("DELETE FROM calcvals_unkown")
+	For idx=0 To data.Length-1
+		If mLuxCalcsMap.ContainsKey(idx)=False Then 
+			SQL1.ExecNonQuery2("REPLACE INTO calcvals_unkown (luxid, value) VALUES (?, ?)" _
+							 , Array As String (idx, data(idx)))
+			Continue
+		End If
+		Dim Calc As cLuxCalculation
+		Calc.Initialize
+		metric = mLuxCalcsMap.Get(idx)
+		If mLuxCalcs.ContainsKey(metric) Then
+			Calc = mLuxCalcs.Get(metric)
+		End If
+		
+		value = data(idx)
+		text  = ""
+		If Calc.FormatID > 0 And mValueFmt.ContainsKey(Calc.FormatID) Then
+			NumFormat1 = mValueFmt.Get(Calc.FormatID)
+			Try
+				If NumFormat1.Divisor<>0 Then value = value / NumFormat1.Divisor
+			Catch
+				logger.wError(LastException.Message)
+			End Try
+			text = NumFormat1.FormatString
+		Else If Calc.MapID > 0 Then
+			text = LuxValue2Text(Calc.MapID, value)
+		Else
+			text = value
+		End If
+		'TODO: Umsetzung %d und co. wie mit printf. Vorlage die sqlite Datenbank aus der letzten der FW 3.85.x
+		'TODO: Verschiedene Formate für das Datum / Zeit
+		If text.Contains("%DAYTIME") Then
+			Try
+				ticks = DateUtils.UnixTimeToTicks(value)
+				text = text.Replace("%DAYTIME", DateTime.Date(ticks) & " " & DateTime.Time(ticks))
+			Catch
+				logger.wError($"Unable to convert unixtime to ticks! Index ${idx} Value ${value}"$)
+				logger.wError(LastException.Message)
+			End Try
+		End If
+		If text.Contains("%IP") Then
+			Try
+				text=LuxValue2IP(value)
+			Catch
+				logger.wError($"Unable to convert int to ip! Index ${idx} Value ${value}"$)
+				logger.wError(LastException.Message)
+			End Try
+		End If
+		If text.Contains("%SEC2TIME") Then
+			text=LuxSecs2Time(value)
+		End If
+		If text.Contains("%") Then 
+			text = format(text, Array(value))
+'			text = text.Replace("%", value)
+		End If
+
+	
+		SQL1.ExecNonQuery2("REPLACE INTO calcvals (metric, value, text) VALUES (?, ?, ?)" _
+		                  ,Array As String (metric, value, text))
+		If Calc.History Then
+			p = DateUtils.PeriodBetween(Calc.History_LastSave, now) 
+			If p.Seconds >= Calc.History_Interval Then 
+				SQL1.ExecNonQuery2("INSERT INTO calcvals_history (ts, metric, value) VALUES (now(), ?, ?)" _
+							  	   ,Array As String(metric, value))
+				Calc.History_LastSave = now
+			End If
+		End If
+		Calc.Value = value
+		mLuxCalcs.Put(metric, Calc)
+	Next
+	
+	' Software Version
+	Dim sb As StringBuilder
+	sb.Initialize
+	For idx=81 To 90
+		If data(idx)=0 Then Continue
+		sb.Append(Chr(data(idx)))
+	Next
+	SQL1.ExecNonQuery2("REPLACE INTO calcvals (metric, value, text) VALUES (?, ?, ?)" _
+		                  ,Array As String ("ID_WEB_SoftStand", 0, sb.ToString))
+
+
+	' ToDo: Minuten umrechnen
+	' Laufzeit Ø VD1
+	If data(57)<>0 Then 	value = (data(56)/60/60)/data(57) Else value = 0
+	SQL1.ExecNonQuery2("REPLACE INTO calcvals (metric, value, text) VALUES (?, ?, ?)" _
+		                  ,Array As String ("ID_WEB_Zaehler_ImpulseVD1", value, value))
+	' Laufzeit Ø VD2
+	If data(59)<>0 Then 	value = (data(58)/60/60)/data(59) Else value = 0
+	SQL1.ExecNonQuery2("REPLACE INTO calcvals (metric, value, text) VALUES (?, ?, ?)" _
+		                  ,Array As String ("ID_WEB_Zaehler_ImpulseVD2", value, value))
+
+	' Fehlermeldungen
+	For idx=95 To 99
+		ticks = data(idx)
+		value = data(idx+5)
+		text  = LuxValue2Text(95, value)
+		SQL1.ExecNonQuery2("INSERT IGNORE INTO errorlog (ts, value, text) VALUES (FROM_UNIXTIME(?), ?, ?)" _
+		                  ,Array As String (ticks, value, text))
+	Next
+	' Abschaltungen
+	For idx=106 To 110
+		ticks = data(idx+5)
+		value = data(idx)
+		text = LuxValue2Text(106, value)
+		SQL1.ExecNonQuery2("INSERT IGNORE INTO switchoff (ts, value, text) VALUES (FROM_UNIXTIME(?), ?, ?)" _
+		                  ,Array As String (ticks, value, text))
+	Next
+
+	SQL1.TransactionSuccessful
+End Sub
+#End Region
+
+Sub LuxValue2Text(id As Int, value As Int) As String
+	Dim key  As String
+	Dim text As String
+	key=$"${id}:${value}"$
+	If mValueMap.ContainsKey(key) Then text=mValueMap.Get(key)
+	Return text
+End Sub
+
+Sub LuxValue2IP(value As Int) As String
+	Dim b(4) As Byte
+	Dim ip As String
+	
+	' Funktioniert mal überhaupt nicht
+	b(0) = value & 0xFF
+	b(1) = Bit.ShiftRight(value, 8) & 0xFF
+	b(2) = Bit.ShiftRight(value, 16) & 0xFF
+	b(3) = Bit.ShiftRight(value, 24) & 0xFF
+	ip = b(3) & "." & b(2) & "." & b(1) & "." & b(0)
+	Return ip
+End Sub
+
+Sub LuxSecs2Time(seconds As Int) As String
+	Dim text As String
+	seconds = seconds * DateTime.TicksPerSecond
+	text  = Floor(seconds/DateTime.TicksPerHour Mod 24) _
+	      & ":" & NumberFormat(Floor(seconds/DateTime.TicksPerMinute Mod 60), 2, 0) _
+		  & ":" &  NumberFormat(Floor(seconds/DateTime.TicksPerSecond Mod 60), 2, 0)
+'	text = format("%.2f h", Array(text))
+	Return text
+End Sub
+
+Sub ConfigGetString(option As String, default As String) As String
+	Dim value As String
+	If config.ContainsKey(option) Then
+		value = config.Get(option)
+		If value.Trim = "" Then value = default
+	Else
+		value = default
+	End If
+	Return value
+End Sub
+
+Sub ConfigGetInt(option As String, default As Int) As Int
+	Dim value As Int
+	Dim value1 As String
+	If config.ContainsKey(option) Then
+		value1 = config.Get(option)
+		If value1.Trim = "" Then value = default
+		If IsNumber(value1) Then value = value1 Else value = default
+	Else
+		value = default
+	End If
+	Return value
+End Sub
+
+Sub inline As JavaObject
+	Return Me
+End Sub
+Sub format(f As String,a() As Object) As String
+	Dim text As String
+	Try
+		text = inline.RunMethod("format",Array(f,a))
+	Catch
+		logger.wError(f)
+		logger.wError(LastException.Message)
+		text = text.Replace("%", a(0))
+	End Try
+	Return text
+End Sub
+#if java
+import java.lang.String;
+
+static public String format(String f,Object... args){
+    return String.format(f,args);
+}
+#end if

@@ -1,0 +1,13 @@
+[Unit]
+Description=Luxtronik
+
+[Service]
+WorkingDirectory=/opt/luxtronik
+ExecStart=/bin/java -Xms256m -Xmx256m -jar luxtronik.jar
+User=root
+Type=simple
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
