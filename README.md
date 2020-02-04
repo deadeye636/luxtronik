@@ -2,6 +2,7 @@
 This litte tool written in [b4j](https://www.b4x.com/b4j.html) runs as a service. 
 It reads and controls heat pumps, based on Luxtronik 2.x
 The values are written to an mysql database. Splittet into known and unkown calcs/parameters.
+MQTT Support for testing.
 
 Use at your own risk! It was testet with an heat pump LWCV 82r1/3.
 For writing parameters to the heatpump set luxParamSet to Y.
@@ -53,5 +54,4 @@ java -jar luxtronik.jar
 
 ## Planned Features
 - Support for a time based database
-- MQTT
 - Luxtronik WebSocks
