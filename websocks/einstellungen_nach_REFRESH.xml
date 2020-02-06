@@ -1,0 +1,140 @@
+<values>
+	<item id='0x31ad94'>
+		<item id='0x314d6c'>
+			<value>Automatik</value>
+		</item>
+		<item id='0x317fc4'>
+			<value>Automatik</value>
+		</item>
+	</item>
+	<item id='0x2ea2f4'>
+		<item id='0x31b43c'>
+			<value>50.0°C</value>
+		</item>
+		<item id='0x31babc'>
+			<value>1.0 K</value>
+		</item>
+		<item id='0x31a11c'>
+			<value>5.0 K</value>
+		</item>
+		<item id='0x31a174'>
+			<value>7.0 K</value>
+		</item>
+		<item id='0x31b94c'>
+			<value>-8.0°C</value>
+		</item>
+		<item id='0x319d14'>
+			<value>65.0°C</value>
+		</item>
+		<item id='0x31b804'>
+			<value>40.0°C</value>
+		</item>
+		<item id='0x31b85c'>
+			<value>-20.0°C</value>
+		</item>
+		<item id='0x31b6fc'>
+			<value>-20.0°C</value>
+		</item>
+		<item id='0x2ea47c'>
+			<value>3.0 K</value>
+		</item>
+		<item id='0x2ea06c'>
+			<value>65.0°C</value>
+		</item>
+		<item id='0x2ea0c4'>
+			<value>15.0°C</value>
+		</item>
+		<item id='0x2ea1cc'>
+			<value>20.0°C</value>
+		</item>
+		<item id='0x2e2ac4'>
+			<value>45.0°C</value>
+		</item>
+	</item>
+	<item id='0x31562c'>
+		<item id='0x2ed8e4'>
+			<value>ohne ZWE</value>
+		</item>
+		<item id='0x2ed94c'>
+			<value>Nein</value>
+		</item>
+		<item id='0x2ed9b4'>
+			<value>Trennsp</value>
+		</item>
+		<item id='0x2eda0c'>
+			<value>Entlade</value>
+		</item>
+		<item id='0x2edb4c'>
+			<value>ohne ZWE</value>
+		</item>
+		<item id='0x3166f4'>
+			<value>Fuehler</value>
+		</item>
+		<item id='0x2ed784'>
+			<value>ZIP</value>
+		</item>
+		<item id='0x31674c'>
+			<value>mit ZUP</value>
+		</item>
+		<item id='0x3167ec'>
+			<value>Sollwert</value>
+		</item>
+		<item id='0x316894'>
+			<value>ohne HUP</value>
+		</item>
+		<item id='0x3168ec'>
+			<value>0.0 h</value>
+		</item>
+		<item id='0x316b8c'>
+			<value>Nein</value>
+		</item>
+		<item id='0x2ecfa4'>
+			<value>KD</value>
+		</item>
+		<item id='0x2ed104'>
+			<value>Ein</value>
+		</item>
+		<item id='0x2ed15c'>
+			<value>AT-Abh.</value>
+		</item>
+		<item id='0x2ed1b4'>
+			<value>AT-Abh.</value>
+		</item>
+		<item id='0x2ed304'>
+			<value>Festt.</value>
+		</item>
+		<item id='0x2ed3a4'>
+			<value>m. Misch</value>
+		</item>
+		<item id='0x2ed3fc'>
+			<value>Nein</value>
+		</item>
+		<item id='0x2ff8a4'>
+			<value>Ja</value>
+		</item>
+		<item id='0x2ff98c'>
+			<value>Nein</value>
+		</item>
+		<item id='0x2ff9e4'>
+			<value>5 min</value>
+		</item>
+		<item id='0x2ffdac'>
+			<value>Ja</value>
+		</item>
+		<item id='0x3113cc'>
+			<value>60 min</value>
+		</item>
+		<item id='0x311424'>
+			<value>Nein</value>
+		</item>
+		<item id='0x2ed7dc'>
+			<value>5.0 h</value>
+		</item>
+		<item id='0x311584'>
+			<value>Nein</value>
+		</item>
+		<item id='0x31165c'>
+			<value>schnell</value>
+		</item>
+	</item>
+</values>

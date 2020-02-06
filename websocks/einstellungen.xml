@@ -1,0 +1,267 @@
+<Content>
+	<item id='0x31ad94'>
+		<name>Betriebsart</name>
+		<item id='0x314d6c'>
+			<name>Heizkreis</name>
+			<option value='0'>Automatik</option>
+			<option value='1'>Zus. Wärmeerz</option>
+			<option value='2'>Party</option>
+			<option value='3'>Ferien</option>
+			<option value='4'>Aus</option>
+			<raw>0</raw>
+			<value>Automatik</value>
+		</item>
+		<item id='0x317fc4'>
+			<name>Warmwasser</name>
+			<option value='0'>Automatik</option>
+			<option value='1'>Zus. Wärmeerz</option>
+			<option value='2'>Party</option>
+			<option value='3'>Ferien</option>
+			<option value='4'>Aus</option>
+			<raw>0</raw>
+			<value>Automatik</value>
+		</item>
+		<name>Einstellungen</name>
+	</item>
+	<item id='0x2ea2f4'>
+		<name>Temperaturen</name>
+		<item id='0x31b43c'>
+			<name>Rückl.-Begr.</name>
+			<value>50.0°C</value>
+		</item>
+		<item id='0x31babc'>
+			<name>Hysterese HR</name>
+			<value>1.0 K</value>
+		</item>
+		<item id='0x31a11c'>
+			<name>Hysterese WW</name>
+			<value>5.0 K</value>
+		</item>
+		<item id='0x31a174'>
+			<name>TR Erh max</name>
+			<value>7.0 K</value>
+		</item>
+		<item id='0x31b94c'>
+			<name>Freig. ZWE</name>
+			<value>-8.0°C</value>
+		</item>
+		<item id='0x319d14'>
+			<name>TDI-Solltemp</name>
+			<min>500</min>
+			<max>700</max>
+			<step>10</step>
+			<unit>°C</unit>
+			<div>10.00</div>
+			<raw>650</raw>
+			<value>65.0°C</value>
+		</item>
+		<item id='0x31b804'>
+			<name>TAussen max</name>
+			<value>40.0°C</value>
+		</item>
+		<item id='0x31b85c'>
+			<name>TAussen min</name>
+			<value>-20.0°C</value>
+		</item>
+		<item id='0x31b6fc'>
+			<name>Absenk. bis</name>
+			<min>-200</min>
+			<max>100</max>
+			<step>5</step>
+			<unit>°C</unit>
+			<div>10.00</div>
+			<raw>-200</raw>
+			<value>-20.0°C</value>
+		</item>
+		<item id='0x2ea47c'>
+			<name>Hysterese KR</name>
+			<value>3.0 K</value>
+		</item>
+		<item id='0x2ea06c'>
+			<name>Max.Warmwassertemp.</name>
+			<value>65.0°C</value>
+		</item>
+		<item id='0x2ea0c4'>
+			<name>Min. Rückl.Solltemp.</name>
+			<min>150</min>
+			<max>300</max>
+			<step>5</step>
+			<unit>°C</unit>
+			<div>10.00</div>
+			<raw>150</raw>
+			<value>15.0°C</value>
+		</item>
+		<item id='0x2ea1cc'>
+			<name>Minimaler Vorlauf MK 1</name>
+			<value>20.0°C</value>
+		</item>
+		<item id='0x2e2ac4'>
+			<name>Maximaler Vorlauf MK 1</name>
+			<value>45.0°C</value>
+		</item>
+		<name>Temperaturen</name>
+	</item>
+	<item id='0x31562c'>
+		<name>System Einstellung</name>
+		<item id='0x2ed8e4'>
+			<name>EVU-Sperre</name>
+			<value>ohne ZWE</value>
+		</item>
+		<item id='0x2ed94c'>
+			<name>Raumstation</name>
+			<option value='0'>Nein</option>
+			<option value='4'>RBE</option>
+			<option value='6'>Smart</option>
+			<raw>0</raw>
+			<value>Nein</value>
+		</item>
+		<item id='0x2ed9b4'>
+			<name>Einbindung</name>
+			<value>Trennsp</value>
+		</item>
+		<item id='0x2eda0c'>
+			<name>Mischkreis 1</name>
+			<value>Entlade</value>
+		</item>
+		<item id='0x2edb4c'>
+			<name>Störung</name>
+			<value>ohne ZWE</value>
+		</item>
+		<item id='0x3166f4'>
+			<name>Warmwasser1</name>
+			<option value='0'>Fuehler</option>
+			<option value='1'>Therm.</option>
+			<raw>0</raw>
+			<value>Fuehler</value>
+		</item>
+		<item id='0x2ed784'>
+			<name>Warmwasser2</name>
+			<value>ZIP</value>
+		</item>
+		<item id='0x31674c'>
+			<name>Warmwasser3</name>
+			<value>mit ZUP</value>
+		</item>
+		<item id='0x3167ec'>
+			<name>Warmwasser4</name>
+			<value>Sollwert</value>
+		</item>
+		<item id='0x316894'>
+			<name>Warmwasser5</name>
+			<value>ohne HUP</value>
+		</item>
+		<item id='0x3168ec'>
+			<name>WW+WP max</name>
+			<min>0</min>
+			<max>80</max>
+			<step>5</step>
+			<unit> h</unit>
+			<div>10.00</div>
+			<raw>0</raw>
+			<value>0.0 h</value>
+		</item>
+		<item id='0x316b8c'>
+			<name>Pumpenoptim.</name>
+			<option value='0'>Nein</option>
+			<option value='1'>Ja</option>
+			<raw>0</raw>
+			<value>Nein</value>
+		</item>
+		<item id='0x2ecfa4'>
+			<name>Zugang</name>
+			<value>KD</value>
+		</item>
+		<item id='0x2ed104'>
+			<name>ÜberwachungVD</name>
+			<value>Ein</value>
+		</item>
+		<item id='0x2ed15c'>
+			<name>Regelung HK</name>
+			<value>AT-Abh.</value>
+		</item>
+		<item id='0x2ed1b4'>
+			<name>Regelung MK1</name>
+			<value>AT-Abh.</value>
+		</item>
+		<item id='0x2ed304'>
+			<name>Kühlung</name>
+			<option value='0'>Festt.</option>
+			<option value='1'>AT-Abh.</option>
+			<raw>0</raw>
+			<value>Festt.</value>
+		</item>
+		<item id='0x2ed3a4'>
+			<name>Ausheizen</name>
+			<option value='0'>m. Misch</option>
+			<option value='1'>o. Misch</option>
+			<raw>0</raw>
+			<value>m. Misch</value>
+		</item>
+		<item id='0x2ed3fc'>
+			<name>Elektr. Anode</name>
+			<value>Nein</value>
+		</item>
+		<item id='0x2ff8a4'>
+			<name>Heizgrenze</name>
+			<option value='0'>Nein</option>
+			<option value='1'>Ja</option>
+			<raw>1</raw>
+			<value>Ja</value>
+		</item>
+		<item id='0x2ff98c'>
+			<name>Fernwartung</name>
+			<option value='0'>Nein</option>
+			<option value='1'>Ja</option>
+			<raw>0</raw>
+			<value>Nein</value>
+		</item>
+		<item id='0x2ff9e4'>
+			<name>Pumpenoptim. Zeit</name>
+			<min>5</min>
+			<max>180</max>
+			<step>5</step>
+			<unit> min</unit>
+			<div>1.00</div>
+			<raw>5</raw>
+			<value>5 min</value>
+		</item>
+		<item id='0x2ffdac'>
+			<name>Meldung TDI</name>
+			<value>Ja</value>
+		</item>
+		<item id='0x3113cc'>
+			<name>Freig. ZWE</name>
+			<value>60 min</value>
+		</item>
+		<item id='0x311424'>
+			<name>Warmw. Nachheizung</name>
+			<option value='0'>Nein</option>
+			<option value='1'>Ja</option>
+			<raw>0</raw>
+			<value>Nein</value>
+		</item>
+		<item id='0x2ed7dc'>
+			<name>Warmw. Nachh. max</name>
+			<min>10</min>
+			<max>100</max>
+			<step>5</step>
+			<unit> h</unit>
+			<div>10.00</div>
+			<raw>50</raw>
+			<value>5.0 h</value>
+		</item>
+		<item id='0x311584'>
+			<name>Smart Grid</name>
+			<value>Nein</value>
+		</item>
+		<item id='0x31165c'>
+			<name>Regelung MK1</name>
+			<option value='0'>schnell</option>
+			<option value='1'>mittel</option>
+			<option value='2'>langsam</option>
+			<raw>0</raw>
+			<value>schnell</value>
+		</item>
+		<name>Einstellungen</name>
+	</item>
+</Content>

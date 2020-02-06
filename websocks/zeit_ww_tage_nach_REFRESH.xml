@@ -1,0 +1,128 @@
+<values>
+	<item>
+		<name>Sonntag</name>
+		<item id='0x316d34'>
+			<value>20:00 - 07:00</value>
+		</item>
+		<item id='0x31b94c'>
+			<value>00:00 - 00:00</value>
+		</item>
+		<item id='0x31a594'>
+			<value>00:00 - 00:00</value>
+		</item>
+		<item id='0x3183c4'>
+			<value>00:00 - 00:00</value>
+		</item>
+		<item id='0x317fc4'>
+			<value>00:00 - 00:00</value>
+		</item>
+	</item>
+	<item>
+		<name>Montag</name>
+		<item id='0x317c8c'>
+			<value>20:00 - 07:00</value>
+		</item>
+		<item id='0x31b4ac'>
+			<value>00:00 - 00:00</value>
+		</item>
+		<item id='0x317abc'>
+			<value>00:00 - 00:00</value>
+		</item>
+		<item id='0x2edefc'>
+			<value>00:00 - 00:00</value>
+		</item>
+		<item id='0x31876c'>
+			<value>00:00 - 00:00</value>
+		</item>
+	</item>
+	<item>
+		<name>Dienstag</name>
+		<item id='0x2e1394'>
+			<value>20:00 - 07:00</value>
+		</item>
+		<item id='0x3160b4'>
+			<value>00:00 - 00:00</value>
+		</item>
+		<item id='0x2efbe4'>
+			<value>00:00 - 00:00</value>
+		</item>
+		<item id='0x2efc34'>
+			<value>00:00 - 00:00</value>
+		</item>
+		<item id='0x3218ac'>
+			<value>00:00 - 00:00</value>
+		</item>
+	</item>
+	<item>
+		<name>Mittwoch</name>
+		<item id='0x312c9c'>
+			<value>20:00 - 07:00</value>
+		</item>
+		<item id='0x31a11c'>
+			<value>00:00 - 00:00</value>
+		</item>
+		<item id='0x31a17c'>
+			<value>00:00 - 00:00</value>
+		</item>
+		<item id='0x3177a4'>
+			<value>00:00 - 00:00</value>
+		</item>
+		<item id='0x3177e4'>
+			<value>00:00 - 00:00</value>
+		</item>
+	</item>
+	<item>
+		<name>Donnerstag</name>
+		<item id='0x3155f4'>
+			<value>20:00 - 07:00</value>
+		</item>
+		<item id='0x314d14'>
+			<value>00:00 - 00:00</value>
+		</item>
+		<item id='0x314d74'>
+			<value>00:00 - 00:00</value>
+		</item>
+		<item id='0x31a4a4'>
+			<value>00:00 - 00:00</value>
+		</item>
+		<item id='0x31a4e4'>
+			<value>00:00 - 00:00</value>
+		</item>
+	</item>
+	<item>
+		<name>Freitag</name>
+		<item id='0x319674'>
+			<value>20:00 - 07:00</value>
+		</item>
+		<item id='0x319f64'>
+			<value>00:00 - 00:00</value>
+		</item>
+		<item id='0x319fc4'>
+			<value>00:00 - 00:00</value>
+		</item>
+		<item id='0x2e976c'>
+			<value>00:00 - 00:00</value>
+		</item>
+		<item id='0x2e97ac'>
+			<value>00:00 - 00:00</value>
+		</item>
+	</item>
+	<item>
+		<name>Samstag</name>
+		<item id='0x3130d4'>
+			<value>20:00 - 07:00</value>
+		</item>
+		<item id='0x316e34'>
+			<value>00:00 - 00:00</value>
+		</item>
+		<item id='0x316e94'>
+			<value>00:00 - 00:00</value>
+		</item>
+		<item id='0x319cbc'>
+			<value>00:00 - 00:00</value>
+		</item>
+		<item id='0x319cfc'>
+			<value>00:00 - 00:00</value>
+		</item>
+	</item>
+</values>

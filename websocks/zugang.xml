@@ -1,0 +1,13 @@
+<Content>
+	<item id='0x31560c'>
+		<name>Passwort</name>
+		<min>0</min>
+		<max>9999</max>
+		<step>1</step>
+		<unit/>
+		<div>1.00</div>
+		<raw>0</raw>
+		<value>0</value>
+	</item>
+	<name>Einstellungen</name>
+</Content>
