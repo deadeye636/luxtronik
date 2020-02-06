@@ -1,0 +1,246 @@
+<values>
+	<item id='0x31c844'>
+		<item id='0x31ad54'>
+			<value>24.0°C</value>
+		</item>
+		<item id='0x31b42c'>
+			<value>23.5°C</value>
+		</item>
+		<item id='0x31ade4'>
+			<value>25.6°C</value>
+		</item>
+		<item id='0x31ae2c'>
+			<value>26.4°C</value>
+		</item>
+		<item id='0x31b504'>
+			<value>44.0°C</value>
+		</item>
+		<item id='0x31ae74'>
+			<value>-0.5°C</value>
+		</item>
+		<item id='0x31aebc'>
+			<value>0.7°C</value>
+		</item>
+		<item id='0x31af04'>
+			<value>49.4°C</value>
+		</item>
+		<item id='0x319f44'>
+			<value>50.0°C</value>
+		</item>
+		<item id='0x31b474'>
+			<value>1.7°C</value>
+		</item>
+		<item id='0x319f8c'>
+			<value>24.7°C</value>
+		</item>
+		<item id='0x319fd4'>
+			<value>28.7°C</value>
+		</item>
+		<item id='0x31876c'>
+			<value>39.0°C</value>
+		</item>
+		<item id='0x31abcc'>
+			<value>38.6 K</value>
+		</item>
+		<item id='0x319cbc'>
+			<value>8.0 K</value>
+		</item>
+		<item id='0x31bb3c'>
+			<value>16.8°C</value>
+		</item>
+		<item id='0x31bb84'>
+			<value>20.8°C</value>
+		</item>
+		<item id='0x31bbcc'>
+			<value>-16.6 K</value>
+		</item>
+		<item id='0x31bc14'>
+			<value>90.0°C</value>
+		</item>
+	</item>
+	<item id='0x31a51c'>
+		<item id='0x31c604'>
+			<value>Aus</value>
+		</item>
+		<item id='0x31c734'>
+			<value>Ein</value>
+		</item>
+		<item id='0x31b394'>
+			<value>Aus</value>
+		</item>
+		<item id='0x31c77c'>
+			<value>Ein</value>
+		</item>
+		<item id='0x31c534'>
+			<value>7.03 bar</value>
+		</item>
+		<item id='0x31c5bc'>
+			<value>7.09 bar</value>
+		</item>
+		<item id='0x31afc4'>
+			<value>--- l/h</value>
+		</item>
+		<item id='0x31b894'>
+			<value>Aus</value>
+		</item>
+		<item id='0x31b8dc'>
+			<value>Aus</value>
+		</item>
+	</item>
+	<item id='0x3183c4'>
+		<item id='0x31c10c'>
+			<value>Aus</value>
+		</item>
+		<item id='0x31c304'>
+			<value>Aus</value>
+		</item>
+		<item id='0x31c34c'>
+			<value>Ein</value>
+		</item>
+		<item id='0x31c394'>
+			<value>Ein</value>
+		</item>
+		<item id='0x31c3dc'>
+			<value>Ein</value>
+		</item>
+		<item id='0x31c424'>
+			<value>Aus</value>
+		</item>
+		<item id='0x31c2bc'>
+			<value>Aus</value>
+		</item>
+		<item id='0x31c154'>
+			<value>Aus</value>
+		</item>
+		<item id='0x31c4fc'>
+			<value>Aus</value>
+		</item>
+		<item id='0x31cb5c'>
+			<value>Aus</value>
+		</item>
+		<item id='0x31c19c'>
+			<value>Aus</value>
+		</item>
+		<item id='0x31ce2c'>
+			<value>10.00 V</value>
+		</item>
+		<item id='0x31ce74'>
+			<value>10.00 V</value>
+		</item>
+		<item id='0x31e1cc'>
+			<value>0.0 %</value>
+		</item>
+		<item id='0x31e214'>
+			<value>0 RPM</value>
+		</item>
+		<item id='0x31e25c'>
+			<value>0 RPM</value>
+		</item>
+		<item id='0x31e374'>
+			<value>0 RPM</value>
+		</item>
+		<item id='0x31e3bc'>
+			<value>0.0 %</value>
+		</item>
+		<item id='0x31e404'>
+			<value>0.0 %</value>
+		</item>
+	</item>
+	<item id='0x317ffc'>
+		<item id='0x31dea4'>
+			<value>00:00:00</value>
+		</item>
+		<item id='0x31bfe4'>
+			<value>00:00:00</value>
+		</item>
+		<item id='0x31d31c'>
+			<value>00:00:00</value>
+		</item>
+		<item id='0x31d354'>
+			<value>00:00:00</value>
+		</item>
+		<item id='0x31d38c'>
+			<value>00:06:33</value>
+		</item>
+		<item id='0x31d3d4'>
+			<value>00:00:00</value>
+		</item>
+		<item id='0x31d41c'>
+			<value>00:02:59</value>
+		</item>
+		<item id='0x31d464'>
+			<value>00:00:00</value>
+		</item>
+		<item id='0x31d4e4'>
+			<value>00:00:00</value>
+		</item>
+	</item>
+	<item id='0x318044'>
+		<item id='0x31d8e4'>
+			<value>1613h</value>
+		</item>
+		<item id='0x31d92c'>
+			<value>913</value>
+		</item>
+		<item id='0x31d974'>
+			<value>01:45</value>
+		</item>
+		<item id='0x31da94'>
+			<value>2h</value>
+		</item>
+		<item id='0x31db6c'>
+			<value>1613h</value>
+		</item>
+		<item id='0x31dbb4'>
+			<value>1267h</value>
+		</item>
+		<item id='0x31dbfc'>
+			<value>345h</value>
+		</item>
+	</item>
+	<item id='0x31a594'>
+		<item id='0x31ef2c'>
+			<value>LW 8</value>
+		</item>
+		<item id='0x31ef64'>
+			<value>CMD_6</value>
+		</item>
+		<item id='0x31efec'>
+			<value>V3.84.3 (r5195)</value>
+		</item>
+		<item id='0x31f134'>
+			<value>1</value>
+		</item>
+		<item id='0x31f16c'>
+			<value/>
+		</item>
+		<item id='0x31f1b4'>
+			<value>0.00 kW</value>
+		</item>
+	</item>
+	<item id='0x31a5dc'>
+		<item id='0x321484'>
+			<value>5078.3 kWh</value>
+		</item>
+		<item id='0x3214cc'>
+			<value>1669.1 kWh</value>
+		</item>
+		<item id='0x32154c'>
+			<value>6747.4 kWh</value>
+		</item>
+		<item id='0x321594'>
+			<value>9.4 kWh</value>
+		</item>
+		<item id='0x321654'>
+			<value>6771.4 kWh</value>
+		</item>
+		<item id='0x32169c'>
+			<value>6771.4 kWh</value>
+		</item>
+	</item>
+	<item id='0x319dcc'>
+		<item id='0x3218a4'>
+			<value>Aus</value>
+		</item>
+	</item>
+</values>

@@ -1,0 +1,83 @@
+<Navigation id='0x41ca4620'>
+	<item id='0x41ca1000'>
+		<name>Informationen</name>
+		<item id='0x41c937a8'>
+			<name>Temperaturen</name>
+		</item>
+		<item id='0x41c97bf0'>
+			<name>Eingänge</name>
+		</item>
+		<item id='0x41ca1828'>
+			<name>Ausgänge</name>
+		</item>
+		<item id='0x41c9b320'>
+			<name>Ablaufzeiten</name>
+		</item>
+		<item id='0x41c9a978'>
+			<name>Betriebsstunden</name>
+		</item>
+		<item id='0x41c91e88'>
+			<name>Fehlerspeicher</name>
+		</item>
+		<item id='0x41c92c60'>
+			<name>Abschaltungen</name>
+		</item>
+		<item id='0x41c91f50'>
+			<name>Anlagenstatus</name>
+		</item>
+		<item id='0x41c90218'>
+			<name>Wärmemenge </name>
+		</item>
+		<item id='0x41ca4ee8'>
+			<name>GLT</name>
+		</item>
+	</item>
+	<item id='0x41ca24b0'>
+		<name>Einstellungen</name>
+		<item id='0x41c90ac8'>
+			<name>Betriebsart</name>
+		</item>
+		<item id='0x41c98060'>
+			<name>Temperaturen</name>
+		</item>
+		<item id='0x41c99788'>
+			<name>System Einstellung</name>
+		</item>
+	</item>
+	<item id='0x41ca5c58'>
+		<name>Zeitschaltprogramm</name>
+		<readOnly>true</readOnly>
+		<item id='0x41c93060'>
+			<name>Heizung</name>
+			<readOnly>true</readOnly>
+			<item id='0x41c9ad10'>
+				<name>Woche</name>
+			</item>
+			<item id='0x41c93d40'>
+				<name>5+2</name>
+			</item>
+			<item id='0x41c9b2b8'>
+				<name>Tage (Mo, Di...)</name>
+			</item>
+		</item>
+		<item id='0x41ca7bb0'>
+			<name>Warmwasser</name>
+			<readOnly>true</readOnly>
+			<item id='0x41c9ab28'>
+				<name>Woche</name>
+			</item>
+			<item id='0x41c9b3c8'>
+				<name>5+2</name>
+			</item>
+			<item id='0x41c93e40'>
+				<name>Tage (Mo, Di...)</name>
+			</item>
+		</item>
+	</item>
+	<item id='0x41c92290'>
+		<name>Zugang: Benutzer</name>
+	</item>
+	<item id='0x41c91fc0'>
+		<name>Fernsteuerung</name>
+	</item>
+</Navigation>

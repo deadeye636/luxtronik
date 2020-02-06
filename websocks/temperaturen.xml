@@ -1,0 +1,387 @@
+<Content>
+	<item id='0x31babc'>
+		<name>Temperaturen</name>
+		<item id='0x31a57c'>
+			<name>Vorlauf</name>
+			<value>24.0°C</value>
+		</item>
+		<item id='0x318ff4'>
+			<name>Rücklauf</name>
+			<value>23.5°C</value>
+		</item>
+		<item id='0x31a60c'>
+			<name>Rückl.-Soll</name>
+			<value>25.5°C</value>
+		</item>
+		<item id='0x319cbc'>
+			<name>Rückl.-Extern</name>
+			<value>26.7°C</value>
+		</item>
+		<item id='0x31a534'>
+			<name>Heissgas</name>
+			<value>44.0°C</value>
+		</item>
+		<item id='0x319d04'>
+			<name>Aussentemperatur</name>
+			<value>-0.4°C</value>
+		</item>
+		<item id='0x319d4c'>
+			<name>Mitteltemperatur</name>
+			<value>0.7°C</value>
+		</item>
+		<item id='0x319d94'>
+			<name>Warmwasser-Ist</name>
+			<value>49.6°C</value>
+		</item>
+		<item id='0x319e14'>
+			<name>Warmwasser-Soll</name>
+			<value>50.0°C</value>
+		</item>
+		<item id='0x31a4a4'>
+			<name>Wärmequelle-Ein</name>
+			<value>1.7°C</value>
+		</item>
+		<item id='0x319e5c'>
+			<name>Mischkreis1-Vorlauf</name>
+			<value>24.7°C</value>
+		</item>
+		<item id='0x318bcc'>
+			<name>Mischkreis1 VL-Soll</name>
+			<value>28.6°C</value>
+		</item>
+		<item id='0x319974'>
+			<name>Ansaug VD</name>
+			<value>38.8°C</value>
+		</item>
+		<item id='0x316e7c'>
+			<name>Überhitzung</name>
+			<value>38.4 K</value>
+		</item>
+		<item id='0x318f1c'>
+			<name>Überhitzung Soll</name>
+			<value>8.0 K</value>
+		</item>
+		<item id='0x31a00c'>
+			<name>TFL1</name>
+			<value>17.0°C</value>
+		</item>
+		<item id='0x31a054'>
+			<name>TFL2</name>
+			<value>21.1°C</value>
+		</item>
+		<item id='0x31a09c'>
+			<name>Unterkühlung EEV</name>
+			<value>-16.8 K</value>
+		</item>
+		<item id='0x31a0e4'>
+			<name>THG Grenze</name>
+			<value>90.0°C</value>
+		</item>
+		<name>Temperaturen</name>
+	</item>
+	<item id='0x31a6cc'>
+		<name>Eingänge</name>
+		<item id='0x31ae5c'>
+			<name>ASD</name>
+			<value>Aus</value>
+		</item>
+		<item id='0x31af8c'>
+			<name>EVU</name>
+			<value>Ein</value>
+		</item>
+		<item id='0x31ad84'>
+			<name>HD</name>
+			<value>Aus</value>
+		</item>
+		<item id='0x31afd4'>
+			<name>MOT</name>
+			<value>Ein</value>
+		</item>
+		<item id='0x31adcc'>
+			<name>HD</name>
+			<value>7.05 bar</value>
+		</item>
+		<item id='0x31ae14'>
+			<name>ND</name>
+			<value>7.09 bar</value>
+		</item>
+		<item id='0x31acfc'>
+			<name>Durchfluss</name>
+			<value>--- l/h</value>
+		</item>
+		<item id='0x31b34c'>
+			<name>EVU 2</name>
+			<value>Aus</value>
+		</item>
+		<item id='0x31b394'>
+			<name>STB E-Stab</name>
+			<value>Aus</value>
+		</item>
+		<name>Eingänge</name>
+	</item>
+	<item id='0x319b34'>
+		<name>Ausgänge</name>
+		<item id='0x31b8bc'>
+			<name>AV-Abtauventil</name>
+			<value>Aus</value>
+		</item>
+		<item id='0x31bbac'>
+			<name>BUP</name>
+			<value>Aus</value>
+		</item>
+		<item id='0x31bbf4'>
+			<name>FUP 1</name>
+			<value>Ein</value>
+		</item>
+		<item id='0x31bc3c'>
+			<name>HUP</name>
+			<value>Ein</value>
+		</item>
+		<item id='0x31bc84'>
+			<name>Mischer 1 Auf</name>
+			<value>Aus</value>
+		</item>
+		<item id='0x31bccc'>
+			<name>Mischer 1 Zu</name>
+			<value>Aus</value>
+		</item>
+		<item id='0x31bb64'>
+			<name>Ventil.-BOSUP</name>
+			<value>Aus</value>
+		</item>
+		<item id='0x31b904'>
+			<name>Verdichter 1</name>
+			<value>Aus</value>
+		</item>
+		<item id='0x31bda4'>
+			<name>ZIP</name>
+			<value>Aus</value>
+		</item>
+		<item id='0x31bdec'>
+			<name>ZUP</name>
+			<value>Aus</value>
+		</item>
+		<item id='0x31b94c'>
+			<name>ZWE 1</name>
+			<value>Aus</value>
+		</item>
+		<item id='0x31c0bc'>
+			<name>AO 1</name>
+			<value>10.00 V</value>
+		</item>
+		<item id='0x31c104'>
+			<name>AO 2</name>
+			<value>10.00 V</value>
+		</item>
+		<item id='0x31d45c'>
+			<name>ZUP</name>
+			<value>0.0 %</value>
+		</item>
+		<item id='0x31d4a4'>
+			<name>Freq. Sollwert</name>
+			<value>0 RPM</value>
+		</item>
+		<item id='0x31d4ec'>
+			<name>Freq. aktuell</name>
+			<value>0 RPM</value>
+		</item>
+		<item id='0x31d604'>
+			<name>Ventilatordrehzahl</name>
+			<value>0 RPM</value>
+		</item>
+		<item id='0x31d64c'>
+			<name>EEV Heizen</name>
+			<value>0.0 %</value>
+		</item>
+		<item id='0x31d694'>
+			<name>EEV Kühlen</name>
+			<value>0.0 %</value>
+		</item>
+		<name>Ausgänge</name>
+	</item>
+	<item id='0x3196c4'>
+		<name>Ablaufzeiten</name>
+		<item id='0x31c57c'>
+			<name>WP Seit</name>
+			<value>00:00:00</value>
+		</item>
+		<item id='0x31b794'>
+			<name>ZWE1 seit</name>
+			<value>00:00:00</value>
+		</item>
+		<item id='0x31c88c'>
+			<name>Netzeinschaltv.</name>
+			<value>00:00:00</value>
+		</item>
+		<item id='0x31c8c4'>
+			<name>SSP-Zeit</name>
+			<value>00:00:00</value>
+		</item>
+		<item id='0x31c8fc'>
+			<name>VD-Stand</name>
+			<value>00:04:19</value>
+		</item>
+		<item id='0x31c944'>
+			<name>HRM-Zeit</name>
+			<value>00:00:00</value>
+		</item>
+		<item id='0x31c98c'>
+			<name>HRW-Zeit</name>
+			<value>00:02:23</value>
+		</item>
+		<item id='0x31c9d4'>
+			<name>TDI seit</name>
+			<value>00:00:00</value>
+		</item>
+		<item id='0x31ca54'>
+			<name>Sperre WW</name>
+			<value>00:00:00</value>
+		</item>
+		<name>Ablaufzeiten</name>
+	</item>
+	<item id='0x319634'>
+		<name>Betriebsstunden</name>
+		<item id='0x31ce34'>
+			<name>Betriebstund. VD1</name>
+			<value>1613h</value>
+		</item>
+		<item id='0x31ce7c'>
+			<name>Impulse Verdichter 1</name>
+			<value>913</value>
+		</item>
+		<item id='0x31cec4'>
+			<name>Laufzeit Ø VD1</name>
+			<value>01:45</value>
+		</item>
+		<item id='0x31cfe4'>
+			<name>Betriebstunden ZWE1</name>
+			<value>2h</value>
+		</item>
+		<item id='0x31d0bc'>
+			<name>Betriebstunden WP</name>
+			<value>1613h</value>
+		</item>
+		<item id='0x31d104'>
+			<name>Betriebstunden Heiz.</name>
+			<value>1267h</value>
+		</item>
+		<item id='0x31d14c'>
+			<name>Betriebstunden WW</name>
+			<value>345h</value>
+		</item>
+		<name>Betriebsstunden</name>
+	</item>
+	<item id='0x31967c'>
+		<name>Fehlerspeicher</name>
+		<item id='0x31d97c'>
+			<name>10.07.19 18:07:34</name>
+			<value>Fühler Warmwasser (712)</value>
+		</item>
+		<item id='0x31da0c'>
+			<name>10.07.19 14:42:44</name>
+			<value>Niederdrucksperrung (702)</value>
+		</item>
+		<item id='0x31da9c'>
+			<name>26.06.19 15:13:44</name>
+			<value>Überhitzung (765)</value>
+		</item>
+		<item id='0x31db2c'>
+			<name>01.01.18 12:43:07</name>
+			<value>Überhitzung (765)</value>
+		</item>
+		<item id='0x31dbbc'>
+			<name>01.01.18 12:25:18</name>
+			<value>Überhitzung (765)</value>
+		</item>
+		<name>Fehlerspeicher</name>
+	</item>
+	<item id='0x31935c'>
+		<name>Abschaltungen</name>
+		<item id='0x31dfc4'>
+			<name>06.02.20 08:48:36</name>
+			<value>keine Anf.</value>
+		</item>
+		<item id='0x31df4c'>
+			<name>05.02.20 20:20:53</name>
+			<value>keine Anf.</value>
+		</item>
+		<item id='0x31ded4'>
+			<name>05.02.20 14:21:13</name>
+			<value>keine Anf.</value>
+		</item>
+		<item id='0x31de5c'>
+			<name>05.02.20 11:24:42</name>
+			<value>keine Anf.</value>
+		</item>
+		<item id='0x31d904'>
+			<name>04.02.20 20:15:11</name>
+			<value>keine Anf.</value>
+		</item>
+		<name>Abschaltungen</name>
+	</item>
+	<item id='0x31a24c'>
+		<name>Anlagenstatus</name>
+		<item id='0x31e1a4'>
+			<name>Wärmepumpen Typ</name>
+			<value>LW 8</value>
+		</item>
+		<item id='0x31e1dc'>
+			<name>Wärmepumpen Typ</name>
+			<value>CMD_6</value>
+		</item>
+		<item id='0x31e264'>
+			<name>Softwarestand</name>
+			<value>V3.84.3 (r5195)</value>
+		</item>
+		<item id='0x31e3c4'>
+			<name>Bivalenz Stufe</name>
+			<value>1</value>
+		</item>
+		<item id='0x31e3fc'>
+			<name>Betriebszustand</name>
+			<value/>
+		</item>
+		<item id='0x31e444'>
+			<name>Leistung Ist</name>
+			<value>0.00 kW</value>
+		</item>
+		<name>Anlagenstatus</name>
+	</item>
+	<item id='0x31970c'>
+		<name>Wärmemenge </name>
+		<item id='0x320714'>
+			<name>Heizung</name>
+			<value>5078.3 kWh</value>
+		</item>
+		<item id='0x32075c'>
+			<name>Warmwasser</name>
+			<value>1669.1 kWh</value>
+		</item>
+		<item id='0x3207dc'>
+			<name>Gesamt</name>
+			<value>6747.4 kWh</value>
+		</item>
+		<item id='0x320824'>
+			<name>Zus. Wärmeerz</name>
+			<value>9.4 kWh</value>
+		</item>
+		<item id='0x3208e4'>
+			<name>seit :  10. 7.2019</name>
+			<value>6771.4 kWh</value>
+		</item>
+		<item id='0x32092c'>
+			<name>seit Reset:</name>
+			<value>6771.4 kWh</value>
+		</item>
+		<name>Wärmemenge </name>
+	</item>
+	<item id='0x3188ac'>
+		<name>GLT</name>
+		<item id='0x320b34'>
+			<name>Art</name>
+			<value>Aus</value>
+		</item>
+		<name>GLT</name>
+	</item>
+	<name>Informationen</name>
+</Content>
