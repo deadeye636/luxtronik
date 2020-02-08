@@ -7,6 +7,7 @@ Version=8
 Sub Class_Globals
 	Public Metric           As String
 	Public LuxID            As Int
+	Public LuxWSID			As String
 	Public Description      As String
 	Public FormatID         As Int
 	Public MapID            As Int
@@ -15,6 +16,8 @@ Sub Class_Globals
 	Public History_LastSave As Long
 	Public MQTT				As Boolean
 	Public Value            As Double
+	Public Unit				As String
+	Public Text             As String
 End Sub
 
 Public Sub Initialize

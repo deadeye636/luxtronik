@@ -7,9 +7,12 @@ Version=8
 Sub Class_Globals
 	Public Metric           As String
 	Public LuxID            As Int
+	Public LuxWSID			As String
 	Public Description      As String
 	Public MQTT				As Boolean
 	Public Value				As Int
+	Public Unit				As String
+	Public Text             As String
 End Sub
 
 Public Sub Initialize

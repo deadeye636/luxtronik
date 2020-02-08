@@ -51,7 +51,17 @@ java -jar luxtronik.jar
 | LogRotate        | enable or disable logrotate (Y/N)  | Y |
 | LogConsole       | log messages to console            | N |
 | LogLevel         | loglevel (INFO,WARN,ERROR)         | ERROR |
+| mqttEnable       | enable or disable MQTT (Y/N)       | N |
+| mqttServer       | MQTT Server                        | tcp://192.168.10.4:1883 |
+| mqttTopic        | Topicname                          | heatpump |
+| mqttUser         | user                               | |
+| mqttPassword     | password                           | |
+| mqttClientID     | Client ID                          | heatpump |
+| mqttTelePeriod   | Interval for publishing data       | 10 |
+| luxWSEnable      | Enable WebSocket (experimental)    | N |
+| luxWSHost        | Host                               | ws://192.168.10.6:8214 |
+| luxWSPassword    | WebUI password                     | 999999 |
+| luxWSPin         | Pin for Installateur               | 9445 |
 
 ## Planned Features
 - Support for a time based database
-- Luxtronik WebSocks
