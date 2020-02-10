@@ -8,7 +8,7 @@ Sub Class_Globals
 	Private CallBack    As Object
 	Private EventName   As String
 	
-	Private wsc         As MyWebSocketClient
+	Private wsc         As WebSocketClient
 	Private Connected   As Boolean
 	
 	Public DoMessageDump As Boolean
@@ -23,11 +23,13 @@ Sub Class_Globals
 	Private mContentMapID As Map
 	Private CurMenuItem   As cLuxWSItem
 	
-	Private TimerLuxWSRefresh    As Timer
+	Private AutoRefresh       As Boolean
+	Private TimerLuxWSRefresh As Timer
 End Sub
 
 Public Sub Initialize(tCallBack As Object, tEventName As String)
 	TimerLuxWSRefresh.Initialize("TimerLuxWSRefresh", 1000 * 5 )
+	AutoRefresh = True
 	
 	mNavigation.Initialize
 	CurMenuItem.Initialize
@@ -73,10 +75,20 @@ Public Sub Disconnect
 End Sub
 
 Public Sub getRefreshTimer As Int
-	Return TimerLuxWSRefresh.Interval
+	If AutoRefresh Then
+		Return TimerLuxWSRefresh.Interval
+	Else
+		Return 0
+	End If
+	
 End Sub
 Public Sub setRefreshTimer(tInterval As Int)
-	TimerLuxWSRefresh.Interval = tInterval
+	If tInterval<=0 Then 
+		AutoRefresh = False
+	Else
+		AutoRefresh = True
+		TimerLuxWSRefresh.Interval = tInterval
+	End If
 End Sub
 
 Public Sub getHost As String
@@ -99,11 +111,13 @@ End Sub
 
 Sub wsc_Close (code As Int, reason As String, remote As Boolean)
 	logger.wInfo($"Connection closed - ${code}-${reason}-${remote}"$)
+	CallSubDelayed3(CallBack, EventName & "_close", code, reason)
 	wsc_DoDisconnect(remote)
 End Sub
 
 Sub wsc_Error
 	logger.wInfo("Error " & LastException.Message)
+	CallSubDelayed(CallBack, EventName & "_error")
 	wsc_DoDisconnect(True)
 End Sub
 
@@ -117,10 +131,12 @@ Sub wsc_DoDisconnect(remote As Boolean)
 End Sub
 
 Sub wsc_Message (Message As String)
-	Dim xml As Xml2Map
-	Dim m1 As Map
-	Dim attr As Map
+	Dim xml   As Xml2Map
+	Dim JsonG As JSONGenerator
 	Dim id As String
+	Dim m1, attr As Map
+	
+	
 
 	xml.Initialize
 	m1 = xml.Parse(Message)
@@ -133,9 +149,12 @@ Sub wsc_Message (Message As String)
 		m1 = m1.Get("Navigation")
 		attr = m1.Get("Attributes")
 		id = attr.Get("id")
+		JsonG.Initialize(m1)
 		Dim MenuItem As cLuxWSItem
 		MenuItem.ID   = id
+		MenuItem.ID2  = "Navigation"
 		MenuItem.Name = "Navigation"
+		MenuItem.RawData = JsonG.ToPrettyString(4)
 		mNavigation.Put(MenuItem.Name, MenuItem)
 		ItemMap = LuxBuildFlatMap("", ItemMap, GetElements(m1, "item"), False)
 		mNavigation = ItemMap
@@ -144,8 +163,9 @@ Sub wsc_Message (Message As String)
 		CallSubDelayed2(CallBack, EventName & "_Navigation", mNavigation)
 	Else If m1.ContainsKey("Content") Then
 		DumpMessage(Message, CurMenuItem.Name)
-		m1 = m1.Get("Content")
-		attr = m1.Get("Attributes")
+		Dim o As Object = m1.Get("Content")
+		If o Is Map Then m1 = m1.Get("Content") Else m1.Initialize
+		If m1.ContainsKey("Attributes") Then attr = m1.Get("Attributes")
 		ItemMap = LuxBuildFlatMap("", ItemMap, GetElements(m1, "item"), False)
 		mContent = ItemMap
 		mContentMapID.Clear
@@ -154,7 +174,9 @@ Sub wsc_Message (Message As String)
 			MenuItem = mContent.Get(k)
 			mContentMapID.Put(MenuItem.ID, k)
 		Next
+			
 		CallSubDelayed3(CallBack, EventName & "_Content", CurMenuItem, mContent)
+		CallSubDelayed(Me, "ContentLoaded")
 	else If m1.ContainsKey("values") Then
 		DumpMessage(Message, CurMenuItem.Name & "_values")
 		m1 = m1.Get("values")
@@ -176,16 +198,23 @@ Sub wsc_Message (Message As String)
 	CallSubDelayed2(CallBack, EventName & "_Message", Message)
 End Sub
 
-Sub LuxWSGetContent(MenuItem As cLuxWSItem, DoRefresh As Boolean)
-	If MenuItem = Null Then Return
-	If MenuItem.ID = Null Then Return
+Sub LuxWSGetContent(MenuItem As cLuxWSItem, DoRefresh As Boolean) As ResumableSub
+	If MenuItem = Null Then Return False
+	If MenuItem.ID = Null Then Return False
 	mContent.Clear
 	mContentMapID.Clear
-	wsc.SendText("GET;" & MenuItem.ID)
-	CurMenuItem = MenuItem
 	
-	TimerLuxWSRefresh.Enabled = False	' Reset Timer
-	TimerLuxWSRefresh.Enabled = DoRefresh
+	TimerLuxWSRefresh.Enabled = False
+	
+	CurMenuItem = MenuItem
+	wsc.SendText("GET;" & MenuItem.ID)
+	Wait For ContentLoaded
+
+
+'	TimerLuxWSRefresh.Enabled = False	' Reset Timer
+	If AutoRefresh Then	TimerLuxWSRefresh.Enabled = DoRefresh
+	
+	Return True
 End Sub
 
 Sub TimerLuxWSRefresh_Tick
@@ -224,44 +253,46 @@ Sub LuxInstallateur As ResumableSub
 End Sub
 
 
-Sub LuxBuildFlatMap(Prefix As String, ItemMap As Map, items As List, IdAsKey As Boolean) As Map
+Sub LuxBuildFlatMap(Prefix As String, ContentItemMap As Map, ContentItems As List, IdAsKey As Boolean) As Map
+	Dim JsonG As JSONGenerator
 	Dim idx      As Int
-	Dim Id       As String
-	Dim name     As String
+	Dim id, name, NewPrefix As String
 	Dim readonly As Boolean
-	Dim m1       As Map
-	Dim attr     As Map
-	Dim NewPrefix As String
-	If items.Size=0 Then Return ItemMap
+	Dim m1, attr     As Map
+	Dim o As Object
+	If ContentItems.Size=0 Then Return ContentItemMap
 	
-	For idx=0 To items.Size - 1
-		m1 = items.Get(idx)
+	For idx=0 To ContentItems.Size - 1
+		m1 = ContentItems.Get(idx)
 		name = m1.Get("name")
-		attr = m1.Get("Attributes")
-		Id   = attr.Get("id")
+		o = m1.Get("Attributes")
+		If o Is Map Then attr = o Else attr.Initialize
+		If attr.ContainsKey("id") Then id = attr.Get("id")
 		If m1.ContainsKey("readOnly") And m1.Get("readOnly")="true" Then readonly = True Else readonly = False
 		If name.Contains("[") And name.Contains(",") Then
 			name = name.SubString(1)
-			name = name.SubString2(0, name.IndexOf(",")-1)
+			name = name.SubString2(0, name.IndexOf(","))
 			name = name.Trim
 		End If
-		
-		Dim MenuItem As cLuxWSItem
-		MenuItem.ID       = Id
-		MenuItem.Name     = name
-		MenuItem.ReadOnly = readonly
-		If m1.ContainsKey("value") Then	MenuItem.Value = m1.Get("value")
+
+		JsonG.Initialize(m1)		
+		Dim ContentItem As cLuxWSItem
+		ContentItem.ID       = id
+		ContentItem.ID2      = Prefix & name
+		ContentItem.Name     = name
+		ContentItem.ReadOnly = readonly
+		ContentItem.RawData  = JsonG.ToPrettyString(4)
+		If m1.ContainsKey("value") Then	ContentItem.Value = m1.Get("value")
 
 		If IdAsKey Then
-			ItemMap.Put(Id, MenuItem)
+			ContentItemMap.Put(id, ContentItem)
 		Else
-			ItemMap.Put(Prefix & MenuItem.Name, MenuItem)
+			ContentItemMap.Put(Prefix & ContentItem.Name, ContentItem)
 		End If
-		NewPrefix = Prefix & MenuItem.Name & "/"
-		
-		If m1.ContainsKey("item") Then ItemMap=LuxBuildFlatMap(NewPrefix, ItemMap, GetElements(m1, "item"), IdAsKey)
+		NewPrefix = Prefix & ContentItem.Name & "/"	
+		If m1.ContainsKey("item") Then ContentItemMap=LuxBuildFlatMap(NewPrefix, ContentItemMap, GetElements(m1, "item"), IdAsKey)
 	Next
-	Return ItemMap
+	Return ContentItemMap
 End Sub
 
 Sub GetElements (m As Map, key As String) As List

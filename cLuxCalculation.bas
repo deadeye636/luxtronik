@@ -21,5 +21,4 @@ Sub Class_Globals
 End Sub
 
 Public Sub Initialize
-	MQTT = True ' TODO: Datenbankfeld anlegen
 End Sub

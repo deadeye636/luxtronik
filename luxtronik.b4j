@@ -4,8 +4,8 @@ Group=Default Group
 Library1=jcore
 Library10=jmqtt
 Library11=json
-Library12=mywebsocketclient
-Library13=xml2map
+Library12=xml2map
+Library13=websocketclientlux
 Library2=byteconverter
 Library3=jrandomaccessfile
 Library4=jnetwork
@@ -30,7 +30,7 @@ Version=8.1
 	#CommandLineArgs:
 	#MergeLibraries: True 
 	#AdditionalJar: mariadb-java-client-2.5.2.jar
-	#AdditionalJar: Java-WebSocket-1.4.0-with-dependencies.jar
+	#AdditionalJar: Java-WebSocket.jar
 	#IgnoreWarnings: 15
 #End Region
 
@@ -56,6 +56,8 @@ Sub Process_Globals
 	Private lux_WS_Password As String
 	Private lux_WS_Pin      As String
 	Private lux_WS          As cLuxWebSocket
+	
+	Private mluxWSPages   As Map
 	
 	Private TimerConnect   As Timer
 	Private TimerReload    As Timer
@@ -187,6 +189,8 @@ Sub AppStart (Args() As String)
 	mLuxParamsMap.Initialize
 	mLuxParams.Initialize
 	
+	mluxWSPages.Initialize
+	
 	mValueMap.Initialize
 	mValueFmt.Initialize
 	
@@ -194,7 +198,8 @@ Sub AppStart (Args() As String)
 	
 	If lux_WS_Enabled Then
 		lux_WS.Initialize(Me, "Lux_WS")
-		lux_WS.DoReconnect = True
+		lux_WS.DoReconnect  = True
+		lux_WS.RefreshTimer = 0
 		lux_WS.Connect(lux_WS_Host, lux_WS_Password, lux_WS_Pin, 5000)
 	End If
 	
@@ -252,7 +257,12 @@ Sub TimerConnect_Tick
 		logger.wError("Unable to connect! timeout!")
 		logger.wError(LastException.Message)
 	End If
-'	CallSubDelayed3(lux_WS, "LuxWSGetContent", mNavigation.Get("Informationen"), True)
+	If lux_WS_Enabled And mluxWSPages.Size > 0 Then
+		For Each k As String In mluxWSPages.Keys
+			Wait For (lux_WS.LuxWSGetContent(mluxWSPages.Get(k), False)) Complete(result As Boolean)
+		Next
+	End If
+
 	TimerConnect.Enabled = True
 End Sub
 
@@ -519,15 +529,16 @@ Sub LuxReadParams(Buffer() As Byte)
 		logger.wError(LastException.Message)
 		Return
 	End Try
-	
-	Try
-		SQL1 = pool.GetConnection
-		SendParamsDB(SQL1, i)
-		SQL1.Close
-	Catch
-		logger.wError("Unable to conntect to database!")
-		logger.wError(LastException.Message)
-	End Try
+	SQL1 = SQLConnect
+	If SQL1.IsInitialized Then
+		Try
+			SendParamsDB(SQL1, i)
+			SQL1.Close
+		Catch
+			logger.wError("Unkown error in sub!")
+			logger.wError(LastException.Message)
+		End Try
+	End If
 End Sub
 
 Sub SendParamsDB(SQL1 As SQL, data() As Int)	
@@ -601,15 +612,16 @@ Sub LuxReadCalcs(Buffer() As Byte)
 	For idx = 0 To TextLen-1
 		i(idx) = Raf.ReadInt(Raf.CurrentPosition)
 	Next
-
-	Try
-		SQL1 = pool.GetConnection
-		SendCalcsDB(SQL1, i)
-		SQL1.Close
-	Catch
-		logger.wError("Unable to conntect to database!")
-		logger.wError(LastException.Message)
-	End Try
+	SQL1 = SQLConnect
+	If SQL1.IsInitialized Then
+		Try
+			SendCalcsDB(SQL1, i)
+			SQL1.Close
+		Catch
+			logger.wError("Unkown error in sub!")
+			logger.wError(LastException.Message)
+		End Try
+	End If
 End Sub
 
 Sub SendCalcsDB(SQL1 As SQL, data() As Int)	
@@ -739,11 +751,59 @@ End Sub
 #End Region
 
 #Region WebSocket
+Sub LUX_WS_Navigation(mNavigation As Map)
+	Dim SQL1 As SQL
+	Dim MenuItem As cLuxWSItem
+	Log("LUX_WS_Navigation")
+	mluxWSPages = mNavigation
+	SQL1 = SQLConnect
+	If SQL1.IsInitialized Then
+		SQL1.BeginTransaction
+		SQL1.ExecNonQuery("DELETE FROM wspages")
+		For Each k As String In mNavigation.Keys
+			MenuItem = mNavigation.Get(k)
+			SQL1.ExecNonQuery2("INSERT INTO wspages (id, rawdata) VALUES (?, ?)", Array As Object(MenuItem.ID2, MenuItem.RawData))
+		Next
+		SQL1.TransactionSuccessful
+		SQL1.Close
+	End If
+End Sub
+
 Sub Lux_WS_Content(MenuItem As cLuxWSItem, mContent As Map)
+	Dim SQL1 As SQL
+	Dim ContentItem As cLuxWSItem
 	Log("Lux_WS_Content")
+	SQL1 = SQLConnect
+	If SQL1.IsInitialized Then
+		SQL1.BeginTransaction
+'		SQL1.ExecNonQuery("DELETE FROM wscontent")
+		For Each k As String In mContent.Keys
+			ContentItem = mContent.Get(k)
+			SQL1.ExecNonQuery2("INSERT INTO wscontent " & _
+			                   "(id, pageid, value, rawdata) " & _
+							   "VALUES " & _
+							   "(?, ?, ?, ?) " & _
+							   " ON DUPLICATE KEY UPDATE " & _
+							   " value=?, rawdata=?" _
+							  , Array As Object(k, MenuItem.id2, ContentItem.Value, ContentItem.RawData, ContentItem.Value, ContentItem.RawData))
+		Next
+		SQL1.TransactionSuccessful
+		SQL1.Close
+	End If
+	
 End Sub
 #End Region
 
+Sub SQLConnect As SQL
+	Dim SQL1 As SQL
+	Try 
+		SQL1 = pool.GetConnection
+	Catch
+		logger.wError("Unable to conntect to database!")
+		logger.wError(LastException.Message)
+	End Try
+	Return SQL1
+End Sub
 
 Sub LuxValue2Text(id As Int, value As Int) As String
 	Dim key  As String
