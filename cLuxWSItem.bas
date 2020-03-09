@@ -10,6 +10,7 @@ Sub Class_Globals
 	Public ID2      As String
 	Public ReadOnly As Boolean
 	Public Value    As String
+	Public ValueRaw As String
 	Public RawData  As String
 End Sub
 

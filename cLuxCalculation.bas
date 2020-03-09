@@ -7,7 +7,8 @@ Version=8
 Sub Class_Globals
 	Public Metric           As String
 	Public LuxID            As Int
-	Public LuxWSID			As String
+	Public WSPage			As String
+	Public WSContent			As String
 	Public Description      As String
 	Public FormatID         As Int
 	Public MapID            As Int

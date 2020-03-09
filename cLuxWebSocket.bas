@@ -29,7 +29,7 @@ End Sub
 
 Public Sub Initialize(tCallBack As Object, tEventName As String)
 	TimerLuxWSRefresh.Initialize("TimerLuxWSRefresh", 1000 * 5 )
-	AutoRefresh = True
+	setRefreshTimer(0)
 	
 	mNavigation.Initialize
 	CurMenuItem.Initialize
@@ -42,7 +42,7 @@ End Sub
 
 Public Sub Connect(Host As String, Password As String, Pin As String, TimeOut As Int)
 	If Connected Then
-
+		wsc.Close
 	End If
 	If Host.StartsWith("ws://")=False And Host.StartsWith("wss://")=False Then
 		
@@ -158,9 +158,8 @@ Sub wsc_Message (Message As String)
 		mNavigation.Put(MenuItem.Name, MenuItem)
 		ItemMap = LuxBuildFlatMap("", ItemMap, GetElements(m1, "item"), False)
 		mNavigation = ItemMap
-		Wait For (LuxInstallateur) Complete(Result As Boolean)
-'		CallSubDelayed3(Me, "LuxWSGetContent", mNavigation.Get("Informationen"), True)
 		CallSubDelayed2(CallBack, EventName & "_Navigation", mNavigation)
+'		Wait For (LuxInstallateur) Complete(Result As Boolean)	
 	Else If m1.ContainsKey("Content") Then
 		DumpMessage(Message, CurMenuItem.Name)
 		Dim o As Object = m1.Get("Content")
@@ -256,7 +255,7 @@ End Sub
 Sub LuxBuildFlatMap(Prefix As String, ContentItemMap As Map, ContentItems As List, IdAsKey As Boolean) As Map
 	Dim JsonG As JSONGenerator
 	Dim idx      As Int
-	Dim id, name, NewPrefix As String
+	Dim id, name, NewPrefix, ValueRaw As String
 	Dim readonly As Boolean
 	Dim m1, attr     As Map
 	Dim o As Object
@@ -282,7 +281,21 @@ Sub LuxBuildFlatMap(Prefix As String, ContentItemMap As Map, ContentItems As Lis
 		ContentItem.Name     = name
 		ContentItem.ReadOnly = readonly
 		ContentItem.RawData  = JsonG.ToPrettyString(4)
-		If m1.ContainsKey("value") Then	ContentItem.Value = m1.Get("value")
+		If m1.ContainsKey("value") Then	
+			ContentItem.Value    = m1.Get("value")
+			
+			ValueRaw= ContentItem.Value 
+			' Entferne bekannte Einheiten
+			ValueRaw=ValueRaw.Replace("°C", "").Replace("bar", "").Replace("l/h", "") _
+			        .Replace("h", "").Replace("%", "").Replace("RPM", "").Replace("V", "") _
+					.Replace("kW", "").Replace("kWh", "").Replace("K","") _
+					.Replace("Ein", "1").Replace("Aus", "0")	
+			' ToDo
+			' Zeit 01:24:22 zu Sekunden
+			' Text zu Map
+			' z.B. Nein = 0, Ja = 1, Heizen = 0, usw.
+			ContentItem.ValueRaw = ValueRaw.Trim
+		End If
 
 		If IdAsKey Then
 			ContentItemMap.Put(id, ContentItem)

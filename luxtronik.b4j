@@ -18,12 +18,13 @@ Module1=cConfig
 Module2=cLuxCalculation
 Module3=cLuxCalculations
 Module4=cLuxParameter
-Module5=cLuxWebSocket
-Module6=cLuxWSItem
-Module7=logger
+Module5=cLuxTCPSocket
+Module6=cLuxWebSocket
+Module7=cLuxWSItem
+Module8=logger
 NumberOfFiles=0
 NumberOfLibraries=13
-NumberOfModules=7
+NumberOfModules=8
 Version=8.1
 @EndOfDesignText@
 #Region Project Attributes 
@@ -45,9 +46,12 @@ Sub Process_Globals
 	Private pool As ConnectionPool	
 	Private StreamBuffer As B4XBytesBuilder
 	
+	Private DataBase As String
+	
 	Private lux_Host     As String
 	Private lux_Port     As Int
 	Private lux_Timeout  As Int
+	Private lux_TCP      As cLuxTCPSocket
 	
 	Private	lux_ParamSet As Boolean
 	
@@ -71,12 +75,14 @@ Sub Process_Globals
 	Private IntervalMQTT     As Int
 	
 	
-	Private mLuxCalcsMap  As Map
-	Private mLuxCalcs     As Map
-	Private mLuxParamsMap As Map
-	Private mLuxParams    As Map
-	Private mValueFmt     As Map
-	Private 	mValueMap     As Map
+	Private mLuxCalcsMap   As Map
+	Private mLuxCalcs      As Map
+	Private mLuxParamsMap  As Map
+	Private mLuxParams     As Map
+	Private mLuxWSCalcMap   As Map
+	Private mLuxWSParamMap  As Map
+	Private mValueFmt      As Map
+	Private 	mValueMap      As Map
 	
 	Private mqtt          As MqttClient
 	Private mqtt_options  As MqttConnectOptions
@@ -90,7 +96,6 @@ Sub Process_Globals
 	Public const VERSION As Float = 2.5
 	
 	Type LuxNumFmt(FormatString As String, Divisor As Double)
-'	Type LuxParam(LuxID As Int, Description As String, FormatID As Int, MapID As Int, History As Boolean, History_Interval As Int, History_LastSave As Long)
 End Sub
 
 Sub AppStart (Args() As String)
@@ -115,6 +120,8 @@ Sub AppStart (Args() As String)
 	If Config.GetBoolean("LogConsole", True)=True Then logger.LogConsole  = True Else logger.LogConsole  = False
 
 	' Verbindungsdaten für die Datenbank
+	DataBase = Config.GetString("Database", "mysql").ToLowerCase.Trim
+	If DataBase="mysql" Then
 	Try
 		pool.Initialize(Config.GetString("DriverClass", ""), _
 	    	            		Config.GetString("JdbcUrl", ""), _
@@ -124,6 +131,14 @@ Sub AppStart (Args() As String)
 		logger.wError("Unable to set connection!" & LastException.Message)
 		ExitApplication
 	End Try
+	Else If DataBase="sqlite" Then
+		If File.Exists(BaseDir, "luxtronik.db")=False Then
+			File.Copy(File.DirAssets, "luxtronik.db", BaseDir, "luxtronik.db")
+		End If
+	Else
+		logger.wError("Unkown DataBase Type!" & LastException.Message)
+		ExitApplication
+	End If
 	
 	' Teste Datenbank
 	Try
@@ -149,6 +164,7 @@ Sub AppStart (Args() As String)
 		logger.wError("No Luxtronik Host set! Option: luxHost")
 		ExitApplication
 	End If
+	
 	
 	' Verbindungsdaten WebSocket Schnittstelle
 	lux_WS_Enabled  = Config.GetBoolean("luxWSEnable", False)
@@ -188,6 +204,8 @@ Sub AppStart (Args() As String)
 	mLuxCalcs.Initialize
 	mLuxParamsMap.Initialize
 	mLuxParams.Initialize
+	mLuxWSCalcMap.Initialize
+	mLuxWSParamMap.Initialize
 	
 	mluxWSPages.Initialize
 	
@@ -195,6 +213,9 @@ Sub AppStart (Args() As String)
 	mValueFmt.Initialize
 	
 	StreamBuffer.Initialize
+	
+	lux_TCP.Initialize(Me, "Lux_TCP", lux_Host, lux_Port, lux_Port)
+	lux_TCP.SetInterval(IntervalConnect*1000)
 	
 	If lux_WS_Enabled Then
 		lux_WS.Initialize(Me, "Lux_WS")
@@ -204,66 +225,23 @@ Sub AppStart (Args() As String)
 	End If
 	
 	TimerConnect.Initialize("TimerConnect", IntervalConnect*1000)
-	TimerConnect.Enabled = False
-	
-	TimerReload.Initialize("TimerReload", IntervalReload*1000)
 	TimerConnect.Enabled = True
+	TimerReload.Initialize("TimerReload", IntervalReload*1000)
 	
 	IntervalParamSet = 10
 	TimerParamSet.Initialize("TimerParamSet", IntervalParamSet*1000)
 	TimerParamSet.Enabled = True
 
 	CallSubDelayed(Me, "TimerReload_Tick")
-	CallSubDelayed(Me, "TimerConnect_Tick")
 	CallSubDelayed(Me, "TimerParamSet_Tick")
 	StartMessageLoop
 	
 End Sub
 
-'Return true to allow the default exceptions handler to handle the uncaught exception.
 Sub Application_Error (Error As Exception, StackTrace As String) As Boolean
 	logger.wError(LastException.Message)
 	logger.wError(StackTrace)
 	Return False
-End Sub
-
-Sub TimerConnect_Tick
-	logger.wInfo($"Connect to Luxtronic ${lux_Host}:${lux_Port}"$)
-	TimerConnect.Enabled = False
-	
-	Dim Socket  As Socket
-	Dim aStream As AsyncStreams
-	
-	Socket.Initialize("Socket")
-	Socket.Connect(lux_Host, lux_Port, lux_Timeout*1000)
-	
-	Wait For Socket_Connected (Successful As Boolean)
-	If Successful Then
-		StreamBuffer.Clear
-		aStream.Initialize(Socket.InputStream, Socket.OutputStream, "Stream")
-		LuxRequestCalcs(aStream)
-		Sleep(1000)
-		LuxReadCalcs(StreamBuffer.ToArray)
-		StreamBuffer.Clear
-		
-		LuxRequestParams(aStream)
-		Sleep(1000)
-		LuxReadParams(StreamBuffer.ToArray)
-		StreamBuffer.Clear
-		
-		aStream.Close
-		Socket.Close
-	Else
-		logger.wError("Unable to connect! timeout!")
-		logger.wError(LastException.Message)
-	End If
-	If lux_WS_Enabled And mluxWSPages.Size > 0 Then
-		For Each k As String In mluxWSPages.Keys
-			Wait For (lux_WS.LuxWSGetContent(mluxWSPages.Get(k), False)) Complete(result As Boolean)
-		Next
-	End If
-
-	TimerConnect.Enabled = True
 End Sub
 
 #Region mqtt
@@ -325,6 +303,7 @@ Sub TimerReload_Tick
 	Dim SQL1 As SQL
 	Dim rs1  As ResultSet
 	Dim mValueFmtNew, mValuesMapNew, mCalcsNew, mCalcsMapNew, mParamsNew, mParamsMapNew As Map
+	Dim mLuxWSCalcMapNew, mLuxWSParamMapNew As Map
 	Dim now As Long = DateTime.Now
 	Try
 		Dim SQL1 As SQL
@@ -339,6 +318,8 @@ Sub TimerReload_Tick
 	mValuesMapNew.Initialize
 	mCalcsNew.Initialize
 	mCalcsMapNew.Initialize
+	mLuxWSCalcMapNew.Initialize
+	mLuxWSParamMapNew.Initialize
 
 	mParamsNew.Initialize
 	mParamsMapNew.Initialize
@@ -369,10 +350,10 @@ Sub TimerReload_Tick
 		End If
 		Calc.Initialize
 		Calc.LuxID       = rs1.GetInt("luxid")
-		Calc.LuxWSID     = rs1.GetString("luxwsid")
+		Calc.WSPage      = rs1.GetString("wspage")
+		Calc.WSContent   = rs1.GetString("wscontent")
 		Calc.FormatID    = rs1.GetInt("formatid")
 		Calc.MapID       = rs1.GetInt("mapid")
-		
 		If rs1.GetString("mqtt")="Y" Then Calc.MQTT = True Else Calc.MQTT = False
 		
 		Calc.MapID       = rs1.GetInt("mapid")
@@ -386,11 +367,13 @@ Sub TimerReload_Tick
 		
 		If rs1.GetString("history")="Y" Then Calc.History = True Else Calc.History = False
 		mCalcsNew.Put(rs1.GetString("metric"), Calc)
-		If Calc.LuxID>0 Then mCalcsMapNew.Put(Calc.LuxID, rs1.GetString("metric"))
+		If Calc.LuxID     >0  Then mCalcsMapNew.Put(Calc.LuxID, rs1.GetString("metric"))
+		If Calc.WSContent<>"" Then mLuxWSCalcMapNew.Put(Calc.WSPage & ":" & Calc.WSContent, rs1.GetString("metric"))
 	Loop
 	rs1.Close
-	mLuxCalcs    = mCalcsNew
-	mLuxCalcsMap = mCalcsMapNew
+	mLuxCalcs     = mCalcsNew
+	mLuxCalcsMap  = mCalcsMapNew
+	mLuxWSCalcMap = mLuxWSCalcMapNew
 
 	rs1 = SQL1.ExecQuery("SELECT id, value, text FROM valuemap")
 	Do While rs1.NextRow
@@ -409,17 +392,20 @@ Sub TimerReload_Tick
 		Param.Initialize
 		Param.Metric  = rs1.GetString("metric")
 		Param.LuxID   = rs1.GetInt("luxid")
-		Param.LuxWSID = rs1.GetString("luxwsid")
+		Param.WSPage    = rs1.GetString("wspage")
+		Param.WSContent = rs1.GetString("wscontent")
 		Param.Description = ""
 		If rs1.GetString("mqtt")="Y" Then Param.MQTT = True Else Param.MQTT = False
 		
 		mParamsNew.Put(rs1.GetString("metric"), Param)
 		
-		If Param.LuxID>0 Then mParamsMapNew.Put(Param.LuxID, rs1.GetString("metric"))
+		If Param.LuxID    >0   Then mParamsMapNew.Put(Param.LuxID, rs1.GetString("metric"))
+		If Param.WSContent<>"" Then mLuxWSParamMapNew.Put(Param.WSPage & ":" & Param.WSContent, rs1.GetString("metric"))
 	Loop
 	rs1.Close
-	mLuxParams    = mParamsNew
-	mLuxParamsMap = mParamsMapNew
+	mLuxParams     = mParamsNew
+	mLuxParamsMap  = mParamsMapNew
+	mLuxWSParamMap = mLuxWSParamMapNew
 	
 	SQL1.Close
 End Sub
@@ -429,13 +415,8 @@ End Sub
 Sub TimerParamSet_Tick
 	Dim SQL1 As SQL
 	Dim rs1  As ResultSet
-	Dim s1   As Socket
-	Dim b() As Byte
-	Dim bc As ByteConverter
-	Dim astream As AsyncStreams
+	Dim Params As Map
 	If lux_ParamSet=False Then Return
-	
-'	logger.wInfo("Luxtronik SetParam")
 	Try
 		SQL1 = pool.GetConnection
 	Catch
@@ -443,96 +424,36 @@ Sub TimerParamSet_Tick
 		logger.wError(LastException.Message)
 		Return
 	End Try
-	s1.Initialize("SocketParamSet")
-	s1.Connect(lux_Host, lux_Port, lux_Port)
-	Wait For SocketParamSet_Connected (Successful As Boolean)
-	If Successful Then 
-		astream.Initialize(s1.InputStream, s1.OutputStream, "StreamParamSet")
-		rs1 = SQL1.ExecQuery("SELECT * FROM paramset AS a INNER JOIN params b ON b.metric=a.metric WHERE changeat<=now()")
-		Do While rs1.NextRow
-			logger.wInfo($"Luxtronik SetParam ${rs1.GetInt("a.id")}  LuxID: ${rs1.GetString("a.metric")}:${rs1.GetInt("b.luxid")}=${rs1.GetInt("a.value")}"$)
-			If rs1.GetInt("b.luxid")>0 Then
-				bc.LittleEndian = False
-				b = bc.IntsToBytes(Array As Int(3002, rs1.GetInt("b.luxid"), rs1.GetInt("a.value")))
-				astream.Write(b)
-			End If
-			SQL1.ExecNonQuery2("DELETE FROM paramset WHERE id=?", Array As String(rs1.GetInt("a.id")))
-		Loop
-		astream.Close
-		rs1.Close
-	End If
-	s1.Close
+	
+	Params.Initialize
+	rs1 = SQL1.ExecQuery("SELECT * FROM paramset AS a INNER JOIN params b ON b.metric=a.metric WHERE changeat<=now()")
+	Do While rs1.NextRow
+		logger.wInfo($"Luxtronik SetParam ${rs1.GetInt("a.id")}  LuxID: ${rs1.GetString("a.metric")}:${rs1.GetInt("b.luxid")}=${rs1.GetInt("a.value")}"$)
+		If rs1.GetInt("b.luxid")>0 Then
+			Params.Put(rs1.GetInt("b.luxid"), rs1.GetInt("a.value"))
+		End If
+	Loop
+	Wait For (lux_TCP.SendData(3002, Params)) Complete(Result As Boolean)
+	If Result Then
+		For Each k As String In Params.Keys
+			SQL1.ExecNonQuery2("DELETE FROM paramset WHERE id=?", Array As String(k))
+		Next
+	End If	
+	rs1.Close
 	SQL1.Close
 End Sub
 
-Sub StreamParamSet_NewData (Buffer() As Byte)
-End Sub
-
-Sub StreamParamSet_Error
-End Sub
-
-Sub StreamParamSet_Terminated
-End Sub
 #End Region
 
-#Region Stream
-Sub Stream_NewData (Buffer() As Byte)
-'	logger.wInfo("Luxtronik NewData")
-	StreamBuffer.Append(Buffer)
-End Sub
-
-Sub Stream_Error
-	logger.wError("Stream Error!")
-	logger.wError(LastException.Message)
-End Sub
-
-Sub Stream_Terminated
-End Sub
-#End Region
-
-#Region Params
-Sub LuxRequestParams(astream As AsyncStreams)
-	Dim b() As Byte
-	Dim bc As ByteConverter
-	
-	StreamBuffer.Clear
-	
-	logger.wInfo("Luxtronik RequestParams (3003)")
-	bc.LittleEndian = False
-	b = bc.IntsToBytes(Array As Int(3003, 0))
-	astream.Write(b)
-End Sub
-
-Sub LuxReadParams(Buffer() As Byte)
-	Dim Raf    As RandomAccessFile
-	Dim SQL1   As SQL
-	
-	logger.wInfo("Luxtronik ReadParams")
-	Raf.Initialize3(Buffer,False)
-	Dim OperationResult As Int=Raf.ReadInt(Raf.CurrentPosition)' Reads the first 4 bytes
-	If OperationResult<>3003 Then 
-		logger.wWARN("Wrong data package received " & OperationResult)
-		Return
-	End If
-	Dim TextLen As Int=Raf.ReadInt(Raf.CurrentPosition)
-
-	If TextLen=0 Or TextLen>2000 Then
-		logger.wError("Array size to big or zero?")
-		Return
-	End If
-	Dim i(TextLen) As Int
-	Try
-		For idx = 0 To TextLen-1
-			i(idx) = Raf.ReadInt(Raf.CurrentPosition)
-		Next
-	Catch
-		logger.wError(LastException.Message)
-		Return
-	End Try
+#Region LuxTCP
+Sub Lux_TCP_NewData(OpCode As Int, Vals() As Int)
+	Dim SQL1 As SQL
+	logger.wInfo($"Luxtronik Lux_TCP_NewData (${OpCode})"$)
 	SQL1 = SQLConnect
 	If SQL1.IsInitialized Then
 		Try
-			SendParamsDB(SQL1, i)
+			If OpCode=3003 Then 	SendParamsDB(SQL1, Vals)
+			If OpCode=3004 Then 	SendCalcsDB(SQL1, Vals)
 			SQL1.Close
 		Catch
 			logger.wError("Unkown error in sub!")
@@ -569,59 +490,6 @@ Sub SendParamsDB(SQL1 As SQL, data() As Int)
 		mLuxParams.Put(metric, Param)
 	Next
 	SQL1.TransactionSuccessful
-End Sub
-#End Region
-
-#Region Calcs
-Sub LuxRequestCalcs(aStream As AsyncStreams)
-	Dim b() As Byte
-	Dim bc As ByteConverter
-		
-	logger.wInfo("Luxtronik GetCalcs (3004)")
-	bc.LittleEndian = False
-	b = bc.IntsToBytes(Array As Int(3004, 0))
-	aStream.Write(b)
-End Sub
-
-Sub LuxReadCalcs(Buffer() As Byte)
-	Dim Raf    As RandomAccessFile
-	Dim SQL1   As SQL
-	
-	logger.wInfo("Luxtronik ReadCalcs")
-	Raf.Initialize3(Buffer,False)
-	Dim OperationResult As Int=Raf.ReadInt(Raf.CurrentPosition)' Reads the first 4 bytes
-	If OperationResult<>3004 Then 
-		logger.wWARN("Wrong data package received " & OperationResult)
-		Return
-	End If
-	Raf.ReadInt(Raf.CurrentPosition)
-	Try
-		Dim TextLen As Int=Raf.ReadInt(Raf.CurrentPosition) 'read the second 4 bytes
-	Catch
-		logger.wError("Can't decode buffer!")
-		logger.wError(LastException.Message)
-		Return
-	End Try
-	
-	If TextLen=0 Or TextLen>2000 Then
-		logger.wError("Array size to big or zero?")
-		Return
-	End If
-	
-	Dim i(TextLen) As Int
-	For idx = 0 To TextLen-1
-		i(idx) = Raf.ReadInt(Raf.CurrentPosition)
-	Next
-	SQL1 = SQLConnect
-	If SQL1.IsInitialized Then
-		Try
-			SendCalcsDB(SQL1, i)
-			SQL1.Close
-		Catch
-			logger.wError("Unkown error in sub!")
-			logger.wError(LastException.Message)
-		End Try
-	End If
 End Sub
 
 Sub SendCalcsDB(SQL1 As SQL, data() As Int)	
@@ -751,6 +619,14 @@ End Sub
 #End Region
 
 #Region WebSocket
+Sub TimerConnect_Tick
+	If lux_WS_Enabled And mluxWSPages.Size > 0 Then
+		For Each k As String In mluxWSPages.Keys
+			Wait For (lux_WS.LuxWSGetContent(mluxWSPages.Get(k), False)) Complete(result As Boolean)
+		Next
+	End If
+End Sub
+
 Sub LUX_WS_Navigation(mNavigation As Map)
 	Dim SQL1 As SQL
 	Dim MenuItem As cLuxWSItem
@@ -772,6 +648,7 @@ End Sub
 Sub Lux_WS_Content(MenuItem As cLuxWSItem, mContent As Map)
 	Dim SQL1 As SQL
 	Dim ContentItem As cLuxWSItem
+	Dim WSKey As String
 	Log("Lux_WS_Content")
 	SQL1 = SQLConnect
 	If SQL1.IsInitialized Then
@@ -780,12 +657,27 @@ Sub Lux_WS_Content(MenuItem As cLuxWSItem, mContent As Map)
 		For Each k As String In mContent.Keys
 			ContentItem = mContent.Get(k)
 			SQL1.ExecNonQuery2("INSERT INTO wscontent " & _
-			                   "(id, pageid, value, rawdata) " & _
+			                   "(id, pageid, value, valueraw, rawdata) " & _
 							   "VALUES " & _
-							   "(?, ?, ?, ?) " & _
+							   "(?, ?, ?, ?, ?) " & _
 							   " ON DUPLICATE KEY UPDATE " & _
-							   " value=?, rawdata=?" _
-							  , Array As Object(k, MenuItem.id2, ContentItem.Value, ContentItem.RawData, ContentItem.Value, ContentItem.RawData))
+							   " value=?, valueraw=?, rawdata=?" _
+							  , Array As Object( _
+							  k, MenuItem.id2, ContentItem.Value, _
+							  ContentItem.ValueRaw, ContentItem.RawData, _
+							  ContentItem.Value, ContentItem.ValueRaw, _
+							  ContentItem.RawData))
+			WSKey = k & ":" & MenuItem.id2
+			If mLuxWSCalcMap.ContainsKey(WSKey) Then
+				Dim Calc As cLuxCalculation = mLuxCalcs.Get(mLuxWSCalcMap.Get(WSKey))
+				Calc.Value = ContentItem.Value
+				mLuxCalcs.Put(mLuxWSCalcMap.Get(WSKey), Calc)
+			End If
+			If mLuxParamsMap.ContainsKey(WSKey) Then
+				Dim Param As cLuxCalculation = mLuxParams.Get(mLuxParamsMap.Get(WSKey))
+				Param.Value = ContentItem.Value
+				mLuxParams.Put(mLuxParamsMap.Get(WSKey), Param)
+			End If
 		Next
 		SQL1.TransactionSuccessful
 		SQL1.Close
@@ -796,12 +688,19 @@ End Sub
 
 Sub SQLConnect As SQL
 	Dim SQL1 As SQL
-	Try 
-		SQL1 = pool.GetConnection
-	Catch
-		logger.wError("Unable to conntect to database!")
-		logger.wError(LastException.Message)
-	End Try
+	If DataBase="mysql" Then
+		Try 
+			SQL1 = pool.GetConnection
+		Catch
+			logger.wError("Unable to conntect to database!")
+			logger.wError(LastException.Message)
+		End Try
+	Else IF DataBase="sqlite" Then
+		SQL1.InitializeSQLite(BaseDir, "luxtronik.db", False)
+		If SQL1.IsInitialized = False Then
+			logger.wError("Unable to open database luxtronik.db!")
+		End If
+	End If
 	Return SQL1
 End Sub
 

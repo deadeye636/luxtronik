@@ -7,7 +7,9 @@
 CREATE TABLE IF NOT EXISTS `calcs` (
   `metric` varchar(50) NOT NULL DEFAULT '',
   `luxid` int(11) NOT NULL DEFAULT 0,
+  `luxwsid` varchar(100) NOT NULL DEFAULT '',
   `description` varchar(50) NOT NULL DEFAULT '',
+  `mqtt` enum('Y','N') NOT NULL DEFAULT 'N',
   `history` enum('Y','N') NOT NULL DEFAULT 'N',
   `history_interval` int(11) NOT NULL DEFAULT 0,
   `formatid` int(11) NOT NULL DEFAULT 0,
@@ -45,7 +47,9 @@ CREATE TABLE IF NOT EXISTS `errorlog` (
 CREATE TABLE IF NOT EXISTS `params` (
   `metric` varchar(50) NOT NULL DEFAULT '',
   `luxid` int(11) NOT NULL DEFAULT 0,
+  `luxwsid` varchar(100) NOT NULL DEFAULT '',
   `description` varchar(50) NOT NULL DEFAULT '',
+  `mqtt` enum('Y','N') NOT NULL DEFAULT 'N',
   PRIMARY KEY (`metric`) USING BTREE,
   KEY `luxid` (`luxid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Parameters from the heatpump\r\nGroup 3003';
@@ -93,18 +97,32 @@ CREATE TABLE IF NOT EXISTS `valuemap` (
   PRIMARY KEY (`id`,`value`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+CREATE TABLE IF NOT EXISTS `wscontent` (
+  `id` varchar(200) NOT NULL DEFAULT '',
+  `pageid` varchar(200) NOT NULL DEFAULT '',
+  `value` varchar(50) DEFAULT NULL,
+  `rawdata` text DEFAULT NULL,
+  PRIMARY KEY (`pageid`,`id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `wspages` (
+  `id` varchar(200) NOT NULL DEFAULT '',
+  `rawdata` text NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 CREATE TABLE `calcs_grafana` (
-	`ts` TIMESTAMP NOT NULL,
+	`ts` TIMESTAMP(0) NOT NULL,
 	`metric` VARCHAR(50) NOT NULL COLLATE 'utf8_general_ci',
 	`description` VARCHAR(50) NOT NULL COLLATE 'utf8_general_ci',
-	`value` DOUBLE NULL
+	`value` DOUBLE(22,0) NULL
 ) ENGINE=MyISAM;
 
 CREATE TABLE `history_grafana` (
-	`ts` TIMESTAMP NOT NULL,
+	`ts` TIMESTAMP(0) NOT NULL,
 	`metric` VARCHAR(50) NOT NULL COLLATE 'utf8_general_ci',
 	`description` VARCHAR(50) NOT NULL COLLATE 'utf8_general_ci',
-	`value` DOUBLE NULL
+	`value` DOUBLE(22,0) NULL
 ) ENGINE=MyISAM;
 
 DROP TABLE IF EXISTS `calcs_grafana`;
